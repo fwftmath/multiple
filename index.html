@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Math Arena V36: Ultimate UI</title>
+    <title>Math Arena V37: Orange & Sound</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -23,8 +23,7 @@
         .lane-item { position: absolute; left: 0; right: 0; transition: top 0.5s ease-in-out; }
         .progress-bar { transition: width 0.3s linear; }
         
-        /* === V36 NEW GLOW BUTTON SYSTEM === */
-        /* Base Style for ALL setting buttons */
+        /* === BUTTON GLOW SYSTEM === */
         .glow-btn {
             @apply border-2 border-slate-700 text-slate-500 rounded-xl font-bold transition-all bg-slate-800/50 relative overflow-hidden flex flex-col items-center justify-center py-4 text-xs md:text-sm uppercase tracking-wider;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
@@ -45,27 +44,35 @@
             transform: scale(1.02); z-index: 1;
         }
 
-        /* 3. Pool (Purple) */
-        .glow-btn.purple.active { 
-            @apply border-purple-400 text-white bg-purple-950/90;
-            box-shadow: 0 0 20px rgba(192, 132, 252, 0.4), inset 0 0 10px rgba(192, 132, 252, 0.1);
+        /* 3. Pool (Orange - NEW) */
+        .glow-btn.orange.active { 
+            @apply border-orange-400 text-white bg-orange-950/90;
+            box-shadow: 0 0 20px rgba(251, 146, 60, 0.4), inset 0 0 10px rgba(251, 146, 60, 0.1);
             transform: scale(1.02); z-index: 1;
         }
 
         /* Main Action Button */
         .btn-primary { @apply bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-6 rounded-lg shadow-[0_0_15px_rgba(8,145,178,0.5)] transform transition active:scale-95 w-full mb-3; }
         
-        /* === V36 AVATAR STYLES === */
+        /* === V37 AVATAR AREA (Full Height, Hidden Scrollbar) === */
         .avatar-grid-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            max-height: 50vh;
-            overflow-y: auto;
+            gap: 8px;
+            /* Changed from fixed max-height to flex-1 to fill screen */
+            flex: 1;
+            overflow-y: auto; 
             padding: 4px;
+            /* Hide Scrollbar for cleaner look */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE/Edge */
         }
+        .avatar-grid-container::-webkit-scrollbar { 
+            display: none; /* Chrome/Safari */
+        }
+
         .avatar-btn { 
-            @apply text-7xl p-2 rounded-2xl border-2 border-slate-700 transition-all cursor-pointer grayscale opacity-60 bg-slate-800 flex justify-center items-center h-28 w-28 mx-auto shadow-md; 
+            @apply text-6xl p-1 rounded-xl border-2 border-slate-700 transition-all cursor-pointer grayscale opacity-60 bg-slate-800 flex justify-center items-center h-24 w-24 mx-auto shadow-md; 
         }
         .avatar-btn.selected { 
             @apply bg-yellow-900/40 grayscale-0 opacity-100 scale-105 z-10; 
@@ -73,12 +80,6 @@
             box-shadow: 0 0 25px 5px rgba(251, 191, 36, 0.5); 
         }
         .avatar-btn.taken { @apply opacity-20 cursor-not-allowed border-red-900 bg-slate-900 scale-90 grayscale; }
-
-        /* Scrollbar polish */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
         /* Z-Index Layers */
         #view-game { z-index: 10; }
@@ -92,7 +93,7 @@
 <body class="h-screen flex flex-col items-center justify-center bg-[#050510]">
 
     <div id="view-menu" class="text-center space-y-6 p-4 max-w-md w-full hidden z-50">
-        <h1 class="text-5xl font-display italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2 neon-text">MATH<br>ARENA V36</h1>
+        <h1 class="text-5xl font-display italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2 neon-text">MATH<br>ARENA V37</h1>
         <div id="db-status" class="text-xs text-red-500 font-bold mb-4">🔴 Connecting...</div>
         <button onclick="setupHost()" class="btn-primary border-l-4 border-cyan-300 text-xl py-6">📡 HOST CLASS</button>
     </div>
@@ -132,8 +133,8 @@
                     <div>
                         <label class="block text-slate-400 text-xs mb-2 font-bold uppercase tracking-widest">3. Question Pool</label>
                         <div class="grid grid-cols-2 gap-2">
-                            <button class="glow-btn purple" onclick="setSync('random')" id="btn-sync-random">🔀 Random</button>
-                            <button class="glow-btn purple active" onclick="setSync('sequence')" id="btn-sync-sequence">📜 Same Set</button>
+                            <button class="glow-btn orange" onclick="setSync('random')" id="btn-sync-random">🔀 Random</button>
+                            <button class="glow-btn orange active" onclick="setSync('sequence')" id="btn-sync-sequence">📜 Same Set</button>
                         </div>
                     </div>
                 </div>
@@ -167,11 +168,11 @@
         <button onclick="goToAvatarSelect()" class="btn-primary">NEXT</button>
     </div>
 
-    <div id="view-avatar-select" class="text-center p-6 max-w-xl w-full hidden z-50 flex-col h-screen">
-        <h2 class="text-xl font-bold mb-2 text-cyan-400">CHOOSE AVATAR</h2>
-        <div class="avatar-grid-container mb-4" id="avatar-grid">
+    <div id="view-avatar-select" class="text-center p-4 w-full max-w-2xl hidden z-50 flex-col h-screen">
+        <h2 class="text-xl font-bold mb-2 text-cyan-400 shrink-0">CHOOSE AVATAR</h2>
+        <div class="avatar-grid-container mb-2 w-full" id="avatar-grid">
             </div>
-        <div class="mt-auto w-full">
+        <div class="shrink-0 w-full pt-2 border-t border-slate-800">
             <button onclick="confirmJoin()" class="btn-primary py-4 text-xl" id="btn-join-confirm" disabled>READY</button>
             <button onclick="showView('view-join')" class="text-slate-500 underline mt-2">BACK</button>
         </div>
@@ -306,7 +307,7 @@
     let localTimerInterval = null;
     const views = ['view-menu','view-host-lobby','view-host-game','view-join','view-avatar-select','view-student-wait','view-game','view-podium','view-rankings'];
     
-    // === V36 UPDATE: 36 AVATARS ===
+    // === 36 AVATARS ===
     const AVATAR_OPTIONS = [
         '🐯','🐰','🦁','🦄','🦖','👽','🤖','🐼','🦊','🐨','🐮','🐷',
         '🐸','🐵','🐔','🐧','🐦','🐤','🦆','🦅','🦉','🦇','🐺','🐗',
@@ -421,8 +422,8 @@
 
     function setSync(type) {
         state.settings.sync = type;
-        // Update Purple Buttons
-        document.querySelectorAll('#view-host-lobby .purple').forEach(btn => btn.classList.remove('active'));
+        // Update Orange Buttons (Modified from Purple)
+        document.querySelectorAll('#view-host-lobby .orange').forEach(btn => btn.classList.remove('active'));
         document.getElementById(`btn-sync-${type}`).classList.add('active');
         if(state.gameId) db.ref(`games/${state.gameId}/settings`).update(state.settings);
     }
@@ -630,11 +631,22 @@
     function startLocalTicker(endTime, elementId) {
         if(localTimerInterval) clearInterval(localTimerInterval);
         const el = document.getElementById(elementId);
+        let lastToneSec = -1; // To prevent multiple beeps in same second
+        
         updateTime();
         localTimerInterval = setInterval(updateTime, 200);
+        
         function updateTime() {
             if(!endTime) { el.innerText = "RACE"; return; }
-            const left = Math.ceil((endTime - Date.now()) / 1000);
+            const diff = endTime - Date.now();
+            const left = Math.ceil(diff / 1000);
+            
+            // --- NEW: Countdown Audio Logic ---
+            if (left <= 5 && left > 0 && left !== lastToneSec) {
+                playTone(600, 'square', 0.1); // Beep!
+                lastToneSec = left;
+            }
+
             if(left <= 0) {
                 el.innerText = "00:00";
                 if(state.role !== 'host') clearInterval(localTimerInterval);
@@ -644,7 +656,7 @@
         }
     }
 
-    // ================= MATH ENGINE V35 (Added Trapezoid & Parallelogram) =================
+    // ================= MATH ENGINE =================
     
     function createMathProblem(topic, currentScore = 0) {
         let t = topic;
@@ -678,29 +690,28 @@
             }
         }
         
-        // AREA (Updated with Trapezoid & Parallelogram)
+        // AREA 
         if (t === 'area') {
             const rand = Math.random();
-            if (rand < 0.2) { // Square
+            if (rand < 0.2) { 
                 const s = rInt(3, 12);
                 return { type: 'geo', shape: 'square', v1: s, qText: 'Area?', a: s*s };
-            } else if (rand < 0.4) { // Rect
+            } else if (rand < 0.4) { 
                 const w = rInt(4, 10);
                 const h = rInt(2, 8);
                 return { type: 'geo', shape: 'rect', v1: w, v2: h, qText: 'Area?', a: w*h };
-            } else if (rand < 0.6) { // Triangle
+            } else if (rand < 0.6) { 
                 const b = rInt(4, 10);
                 const h = rInt(2, 8);
                 return { type: 'geo', shape: 'tri', v1: b, v2: h, qText: 'Area?', a: 0.5*b*h };
-            } else if (rand < 0.8) { // Parallelogram (Base * Height)
+            } else if (rand < 0.8) { 
                 const b = rInt(4, 12);
                 const h = rInt(3, 8);
                 return { type: 'geo', shape: 'parallelogram', v1: b, v2: h, qText: 'Area?', a: b*h };
-            } else { // Trapezoid ( (a+b)*h / 2 )
+            } else { 
                 const top = rInt(3, 8);
                 const bot = rInt(6, 12);
                 const h = rInt(2, 8);
-                // Ensure nice numbers if possible, but engine handles decimals
                 return { type: 'geo', shape: 'trapezoid', v1: top, v2: bot, v3: h, qText: 'Area?', a: 0.5*(top+bot)*h };
             }
         }
@@ -708,10 +719,10 @@
         // VOLUME
         if (t === 'volume') {
             const rand = Math.random();
-            if (rand < 0.4) { // Cube
+            if (rand < 0.4) { 
                 const s = rInt(2, 6);
                 return { type: 'geo', shape: 'cube', v1: s, qText: 'Volume?', a: s*s*s };
-            } else { // Cuboid
+            } else { 
                 const l = rInt(3, 6);
                 const w = rInt(2, 5);
                 const h = rInt(2, 5);
@@ -799,7 +810,7 @@
         setTimeout(() => { el.style.opacity = 0; el.style.transform = "translate(-50%, -50%) scale(0.5)"; }, 800);
     }
 
-    // ================= DRAWING (V35 Update) =================
+    // ================= DRAWING =================
     let canvas, ctx;
     function resizeCanvas() {
         canvas = document.getElementById('gameCanvas');
@@ -893,34 +904,31 @@
             ctx.moveTo(left, bottom); ctx.lineTo(left, bottom - height);
             ctx.stroke(); ctx.setLineDash([]);
             
-            ctx.fillText(q.v1, left + base/2, bottom + 20); // Base
-            ctx.fillText(q.v2, left - 20, bottom - height/2); // Height
+            ctx.fillText(q.v1, left + base/2, bottom + 20); 
+            ctx.fillText(q.v2, left - 20, bottom - height/2); 
         }
-        // --- NEW SHAPE: PARALLELOGRAM ---
         else if (q.shape === 'parallelogram') {
-            const b = 140; // visual base width
-            const h = 80;  // visual height
+            const b = 140; 
+            const h = 80;  
             const slant = 40;
             const x = cx - b/2; 
-            const y = cy + h/2; // bottom-left y
+            const y = cy + h/2; 
             
             ctx.beginPath();
             ctx.moveTo(x, y); 
-            ctx.lineTo(x + b, y); // bottom
-            ctx.lineTo(x + b + slant, y - h); // right slant
-            ctx.lineTo(x + slant, y - h); // top
+            ctx.lineTo(x + b, y); 
+            ctx.lineTo(x + b + slant, y - h); 
+            ctx.lineTo(x + slant, y - h); 
             ctx.closePath();
             ctx.stroke();
             
-            // Height line
             ctx.beginPath(); ctx.setLineDash([5, 5]);
             ctx.moveTo(x + slant, y - h); ctx.lineTo(x + slant, y); 
             ctx.stroke(); ctx.setLineDash([]);
             
-            ctx.fillText(q.v1, cx + slant/2, y + 20); // Base Label
-            ctx.fillText(q.v2, x + slant - 20, cy);   // Height Label
+            ctx.fillText(q.v1, cx + slant/2, y + 20); 
+            ctx.fillText(q.v2, x + slant - 20, cy);   
         }
-        // --- NEW SHAPE: TRAPEZOID ---
         else if (q.shape === 'trapezoid') {
             const topW = 80;
             const botW = 160;
@@ -930,23 +938,21 @@
             const xCenter = cx;
             
             ctx.beginPath();
-            ctx.moveTo(xCenter - botW/2, yBot); // Bottom Left
-            ctx.lineTo(xCenter + botW/2, yBot); // Bottom Right
-            ctx.lineTo(xCenter + topW/2, yTop); // Top Right
-            ctx.lineTo(xCenter - topW/2, yTop); // Top Left
+            ctx.moveTo(xCenter - botW/2, yBot); 
+            ctx.lineTo(xCenter + botW/2, yBot); 
+            ctx.lineTo(xCenter + topW/2, yTop); 
+            ctx.lineTo(xCenter - topW/2, yTop); 
             ctx.closePath();
             ctx.stroke();
             
-            // Height line
             ctx.beginPath(); ctx.setLineDash([5, 5]);
             ctx.moveTo(xCenter, yTop); ctx.lineTo(xCenter, yBot);
             ctx.stroke(); ctx.setLineDash([]);
 
-            ctx.fillText(q.v1, xCenter, yTop - 20); // Top Base
-            ctx.fillText(q.v2, xCenter, yBot + 20); // Bottom Base
-            ctx.fillText(q.v3, xCenter + 15, cy);   // Height
+            ctx.fillText(q.v1, xCenter, yTop - 20); 
+            ctx.fillText(q.v2, xCenter, yBot + 20); 
+            ctx.fillText(q.v3, xCenter + 15, cy);   
         }
-        // --- 3D SHAPES ---
         else if (q.shape === 'cube') {
             const size = 80;
             const offset = 40; 
