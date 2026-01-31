@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Math Arena V33: Visual Geo</title>
+    <title>Math Arena V35: Area + Trapezoids</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -23,12 +23,12 @@
         .lane-item { position: absolute; left: 0; right: 0; transition: top 0.5s ease-in-out; }
         .progress-bar { transition: width 0.3s linear; }
         
-        /* General Button Glow Styles */
+        /* === UNIFIED BUTTON STYLES === */
         .glow-btn-base {
             @apply border border-slate-600 text-slate-400 rounded font-bold transition-all bg-slate-800 hover:bg-slate-700 relative overflow-hidden;
         }
         
-        /* 1. Topic Buttons (Cyan Glow) */
+        /* 1. Topic Buttons (Cyan Theme) */
         .topic-btn { @apply glow-btn-base py-3 text-xs; }
         .topic-btn.active { 
             @apply border-cyan-300 text-white bg-cyan-900/80; 
@@ -36,18 +36,11 @@
             transform: scale(1.02); z-index: 1;
         }
 
-        /* 2. Mode Buttons (Green Glow) */
-        .mode-btn { @apply glow-btn-base py-2 text-sm; }
-        .mode-btn.active { 
+        /* 2. Setting Buttons (Unified Green Theme) */
+        .setting-btn { @apply glow-btn-base py-2 text-sm; }
+        .setting-btn.active { 
             @apply border-green-400 text-white bg-green-900/80; 
-            box-shadow: 0 0 15px rgba(74, 222, 128, 0.5), inset 0 0 10px rgba(74, 222, 128, 0.2);
-        }
-        
-        /* 3. Sync Buttons (Purple Glow - Requested Feature) */
-        .sync-btn { @apply glow-btn-base py-2 text-sm; }
-        .sync-btn.active { 
-            @apply border-purple-400 text-white bg-purple-900/80; 
-            box-shadow: 0 0 20px rgba(192, 132, 252, 0.6), inset 0 0 10px rgba(192, 132, 252, 0.3);
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.6), inset 0 0 10px rgba(74, 222, 128, 0.3);
             border-width: 2px;
         }
 
@@ -77,7 +70,7 @@
 <body class="h-screen flex flex-col items-center justify-center bg-[#050510]">
 
     <div id="view-menu" class="text-center space-y-6 p-4 max-w-md w-full hidden z-50">
-        <h1 class="text-5xl font-display italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2 neon-text">MATH<br>ARENA V33</h1>
+        <h1 class="text-5xl font-display italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2 neon-text">MATH<br>ARENA V35</h1>
         <div id="db-status" class="text-xs text-red-500 font-bold mb-4">🔴 Connecting...</div>
         <button onclick="setupHost()" class="btn-primary border-l-4 border-cyan-300 text-xl py-6">📡 HOST CLASS</button>
     </div>
@@ -99,8 +92,10 @@
                         <button class="topic-btn active" onclick="setTopic('integers')" id="btn-topic-integers">🔢 Integers</button>
                         <button class="topic-btn" onclick="setTopic('algebra')" id="btn-topic-algebra">✖️ Algebra</button>
                         <button class="topic-btn" onclick="setTopic('percent')" id="btn-topic-percent">％ Percent</button>
-                        <button class="topic-btn" onclick="setTopic('geometry')" id="btn-topic-geometry">📐 Area/Vol (Pic)</button>
-                        <button class="topic-btn" onclick="setTopic('coords')" id="btn-topic-coords">📍 Coords</button>
+                        
+                        <button class="topic-btn" onclick="setTopic('area')" id="btn-topic-area">🟦 Area (2D)</button>
+                        <button class="topic-btn" onclick="setTopic('volume')" id="btn-topic-volume">🧊 Volume (3D)</button>
+                        
                         <button class="topic-btn" onclick="setTopic('mixed')" id="btn-topic-mixed">🎲 Mixed</button>
                     </div>
                 </div>
@@ -109,15 +104,15 @@
                     <div>
                         <label class="block text-slate-400 text-xs mb-2 font-bold uppercase">2. End Condition</label>
                         <div class="grid grid-cols-2 gap-2">
-                            <button class="mode-btn active" onclick="setMode('time')" id="btn-mode-time">⏱️ Time</button>
-                            <button class="mode-btn" onclick="setMode('score')" id="btn-mode-score">🏁 Score</button>
+                            <button class="setting-btn active" onclick="setMode('time')" id="btn-mode-time">⏱️ Time</button>
+                            <button class="setting-btn" onclick="setMode('score')" id="btn-mode-score">🏁 Score</button>
                         </div>
                     </div>
                     <div>
                         <label class="block text-slate-400 text-xs mb-2 font-bold uppercase">3. Question Pool</label>
                         <div class="grid grid-cols-2 gap-2">
-                            <button class="sync-btn" onclick="setSync('random')" id="btn-sync-random">🔀 Random</button>
-                            <button class="sync-btn active" onclick="setSync('sequence')" id="btn-sync-sequence">📜 Same Set</button>
+                            <button class="setting-btn" onclick="setSync('random')" id="btn-sync-random">🔀 Random</button>
+                            <button class="setting-btn active" onclick="setSync('sequence')" id="btn-sync-sequence">📜 Same Set</button>
                         </div>
                     </div>
                 </div>
@@ -276,7 +271,7 @@
         score: 0, 
         active: false,
         settings: { mode: 'time', target: 60, topic: 'integers', sync: 'sequence' }, 
-        q: null, // Now stores full object
+        q: null,
         input: '', 
         endTime: 0,
         hostLoop: null,
@@ -331,7 +326,6 @@
         const slider = document.getElementById('setting-slider');
         slider.oninput = () => updateSettingsDisplay();
         
-        // Init Defaults
         setMode('time');
         setTopic('integers');
         setSync('sequence');
@@ -381,8 +375,12 @@
         state.settings.mode = mode;
         const slider = document.getElementById('setting-slider');
         
+        document.querySelectorAll('.setting-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById('btn-mode-score').classList.toggle('active', mode === 'score');
         document.getElementById('btn-mode-time').classList.toggle('active', mode === 'time');
+        
+        document.getElementById('btn-sync-random').classList.toggle('active', state.settings.sync === 'random');
+        document.getElementById('btn-sync-sequence').classList.toggle('active', state.settings.sync === 'sequence');
 
         if(mode==='score') { 
             document.getElementById('setting-label').innerText="TARGET SCORE"; slider.min=500; slider.max=5000; slider.step=100; slider.value=1000; 
@@ -415,10 +413,9 @@
             updateData.endTime = state.endTime;
         }
 
-        // Generate Pool (100 Qs)
         if(state.settings.sync === 'sequence') {
             const pool = [];
-            for(let i=0; i<100; i++) pool.push(createMathProblem(state.settings.topic));
+            for(let i=0; i<100; i++) pool.push(createMathProblem(state.settings.topic, 0)); 
             updateData.questionPool = pool;
         }
 
@@ -475,17 +472,12 @@
                     p.score = parseInt(p.score) || 0;
                     arr.push(p);
                 });
-                
-                // Sort by score DESC
                 arr.sort((a,b) => b.score - a.score);
-
-                // Assign Rank (Dense)
                 let currentRank = 1;
                 for(let i=0; i<arr.length; i++) {
                     if (i > 0 && arr[i].score < arr[i-1].score) currentRank++;
                     arr[i].rank = currentRank;
                 }
-
                 db.ref(`games/${state.gameId}`).update({ status: 'results', finalStandings: arr });
             });
         }, 1500);
@@ -623,91 +615,112 @@
         }
     }
 
-    // ================= S1 MATH ENGINE (VISUAL UPDATE) =================
+    // ================= MATH ENGINE V35 (Added Trapezoid & Parallelogram) =================
     
-    function createMathProblem(topic) {
+    function createMathProblem(topic, currentScore = 0) {
         let t = topic;
         if (topic === 'mixed') {
-            const types = ['integers', 'algebra', 'percent', 'geometry', 'coords'];
+            const types = ['integers', 'algebra', 'percent', 'area', 'volume'];
             t = types[Math.floor(Math.random() * types.length)];
         }
 
-        // --- NEW GEOMETRY LOGIC (RETURNS OBJECT) ---
-        if (t === 'geometry') {
+        // INTEGERS
+        if (t === 'integers') {
+            if (currentScore > 800) {
+                const a = rInt(-9, 15);
+                const b = rInt(-9, 15);
+                const c = rInt(-9, 15);
+                const ops = ['+','-'];
+                const op1 = ops[Math.floor(Math.random()*2)];
+                const op2 = ops[Math.floor(Math.random()*2)];
+                
+                let res = a;
+                if(op1==='+') res+=b; else res-=b;
+                if(op2==='+') res+=c; else res-=c;
+                
+                const qStr = `${a} ${op1} ${b<0?`(${b})`:b} ${op2} ${c<0?`(${c})`:c} = ?`;
+                return { type: 'text', qText: qStr, a: res };
+            } else {
+                const a = rInt(-10, 15);
+                const b = rInt(-10, 15);
+                const op = Math.random() > 0.5 ? '+' : '-';
+                const ans = (op === '+') ? a + b : a - b;
+                return { type: 'text', qText: `${a} ${op} ${b<0?`(${b})`:b} = ?`, a: ans };
+            }
+        }
+        
+        // AREA (Updated with Trapezoid & Parallelogram)
+        if (t === 'area') {
             const rand = Math.random();
-            // Square (Area)
-            if (rand < 0.25) {
+            if (rand < 0.2) { // Square
                 const s = rInt(3, 12);
                 return { type: 'geo', shape: 'square', v1: s, qText: 'Area?', a: s*s };
-            } 
-            // Rectangle (Area)
-            else if (rand < 0.5) {
+            } else if (rand < 0.4) { // Rect
                 const w = rInt(4, 10);
                 const h = rInt(2, 8);
                 return { type: 'geo', shape: 'rect', v1: w, v2: h, qText: 'Area?', a: w*h };
-            }
-            // Triangle (Area)
-            else if (rand < 0.75) {
+            } else if (rand < 0.6) { // Triangle
                 const b = rInt(4, 10);
                 const h = rInt(2, 8);
-                // Ensure even area
                 return { type: 'geo', shape: 'tri', v1: b, v2: h, qText: 'Area?', a: 0.5*b*h };
+            } else if (rand < 0.8) { // Parallelogram (Base * Height)
+                const b = rInt(4, 12);
+                const h = rInt(3, 8);
+                return { type: 'geo', shape: 'parallelogram', v1: b, v2: h, qText: 'Area?', a: b*h };
+            } else { // Trapezoid ( (a+b)*h / 2 )
+                const top = rInt(3, 8);
+                const bot = rInt(6, 12);
+                const h = rInt(2, 8);
+                // Ensure nice numbers if possible, but engine handles decimals
+                return { type: 'geo', shape: 'trapezoid', v1: top, v2: bot, v3: h, qText: 'Area?', a: 0.5*(top+bot)*h };
             }
-            // Circle (Circumference ~ approx) or simple diameter
-            else {
-                const r = rInt(2, 6);
-                // Let's do a logic puzzle: "r=X, d=?" to keep input simple (no PI typing)
-                return { type: 'geo', shape: 'circle', v1: r, qText: 'Diameter?', a: r*2 };
+        }
+
+        // VOLUME
+        if (t === 'volume') {
+            const rand = Math.random();
+            if (rand < 0.4) { // Cube
+                const s = rInt(2, 6);
+                return { type: 'geo', shape: 'cube', v1: s, qText: 'Volume?', a: s*s*s };
+            } else { // Cuboid
+                const l = rInt(3, 6);
+                const w = rInt(2, 5);
+                const h = rInt(2, 5);
+                return { type: 'geo', shape: 'cuboid', v1: l, v2: w, v3: h, qText: 'Volume?', a: l*w*h };
             }
         }
         
-        // --- TEXT BASED ---
-        let qStr = "", ans = 0;
-        
-        if (t === 'integers') {
-            const a = rInt(-10, 15);
-            const b = rInt(-10, 15);
-            const op = Math.random() > 0.5 ? '+' : '-';
-            ans = (op === '+') ? a + b : a - b;
-            qStr = `${a} ${op} ${b<0?`(${b})`:b} = ?`;
-        }
-        else if (t === 'algebra') {
+        // ALGEBRA
+        if (t === 'algebra') {
             const x = rInt(2, 12); 
             if (Math.random() < 0.4) {
                 const a = rInt(2, 5);
-                qStr = `${a}x = ${a*x}, x = ?`;
-                ans = x;
+                return { type: 'text', qText: `${a}x = ${a*x}, x = ?`, a: x };
             } else {
                 const a = rInt(2, 4);
                 const b = rInt(1, 10);
-                qStr = `${a}x + ${b} = ${a*x+b}, x=?`;
-                ans = x;
+                return { type: 'text', qText: `${a}x + ${b} = ${a*x+b}, x=?`, a: x };
             }
         }
-        else if (t === 'percent') {
+
+        // PERCENT
+        if (t === 'percent') {
             const base = rInt(1, 10) * 100; 
             const rate = rInt(1, 9) * 10;   
-            ans = (rate / 100) * base;
-            qStr = `${rate}% of ${base} = ?`;
-        }
-        else if (t === 'coords') {
-            const v = rInt(3, 15);
-            qStr = `Dist (${v}, 0) to O?`;
-            ans = v;
+            return { type: 'text', qText: `${rate}% of ${base} = ?`, a: (rate / 100) * base };
         }
 
-        return { type: 'text', qText: qStr, a: ans };
+        return { type: 'text', qText: "1+1=?", a: 2 };
     }
 
     function generateQuestion() {
         let p;
         if (state.settings.sync === 'sequence' && state.sharedQuestions.length > 0) {
-            p = state.sharedQuestions[state.currentQIndex] || createMathProblem(state.settings.topic);
+            p = state.sharedQuestions[state.currentQIndex] || createMathProblem(state.settings.topic, state.score);
         } else {
-            p = createMathProblem(state.settings.topic);
+            p = createMathProblem(state.settings.topic, state.score);
         }
-
-        state.q = p; // Store the whole object
+        state.q = p;
         state.input = '';
         updateInputDisplay();
     }
@@ -757,7 +770,7 @@
         setTimeout(() => { el.style.opacity = 0; el.style.transform = "translate(-50%, -50%) scale(0.5)"; }, 800);
     }
 
-    // ================= DRAWING (UPDATED FOR GEO) =================
+    // ================= DRAWING (V35 Update) =================
     let canvas, ctx;
     function resizeCanvas() {
         canvas = document.getElementById('gameCanvas');
@@ -779,14 +792,12 @@
         if(!ctx || !state.q) return;
         const w = canvas.width, h = canvas.height;
 
-        // Clear
         ctx.fillStyle = '#0f172a';
         ctx.fillRect(0, 0, w, h);
         
-        // Card BG
         ctx.fillStyle = '#1e293b'; 
         const cardW = Math.min(320, w - 20);
-        const cardH = 220; // Taller for shapes
+        const cardH = 220;
         const cardX = (w - cardW) / 2;
         const cardY = (h - cardH) / 2;
         
@@ -794,7 +805,6 @@
         ctx.roundRect(cardX, cardY, cardW, cardH, 20);
         ctx.fill();
         
-        // Border Pulse
         const time = Date.now() / 1000;
         ctx.lineWidth = 4;
         ctx.strokeStyle = `rgba(34, 211, 238, ${0.5 + Math.sin(time * 3) * 0.2})`;
@@ -804,95 +814,146 @@
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
-        // --- DRAW CONTENT BASED ON TYPE ---
         const cx = w / 2;
         const cy = h / 2;
 
         if (state.q.type === 'geo') {
             drawGeometryQuestion(cx, cy, state.q);
         } else {
-            // Text Fallback
-            if (state.q.qText.length > 15) {
-                 ctx.font = `bold 22px "Roboto Mono"`; 
-                 const words = state.q.qText.split('. ');
-                 if(words.length > 1) {
-                     ctx.fillText(words[0], cx, cy - 15);
-                     ctx.fillText(words[1], cx, cy + 15);
-                 } else {
-                     ctx.fillText(state.q.qText, cx, cy);
-                 }
-            } else {
-                ctx.font = `bold 36px "Roboto Mono"`;
-                ctx.fillText(state.q.qText, cx, cy);
-            }
+            if (state.q.qText.length > 20) ctx.font = `bold 20px "Roboto Mono"`;
+            else if (state.q.qText.length > 15) ctx.font = `bold 24px "Roboto Mono"`;
+            else ctx.font = `bold 36px "Roboto Mono"`;
+            ctx.fillText(state.q.qText, cx, cy);
         }
     }
 
     function drawGeometryQuestion(cx, cy, q) {
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 3;
-        ctx.fillStyle = '#22d3ee'; // Cyan for labels
+        ctx.fillStyle = '#22d3ee'; 
         ctx.font = "bold 20px 'Roboto Mono'";
 
         if (q.shape === 'square') {
-            // Draw Square
             ctx.beginPath();
             const size = 100;
             ctx.rect(cx - size/2, cy - size/2, size, size);
             ctx.stroke();
-            // Label
             ctx.fillText(q.v1, cx, cy - size/2 - 15); 
             ctx.fillText(q.v1, cx + size/2 + 15, cy);
         }
         else if (q.shape === 'rect') {
-            // Draw Rect
             ctx.beginPath();
             const rw = 140, rh = 80;
             ctx.rect(cx - rw/2, cy - rh/2, rw, rh);
             ctx.stroke();
-            // Label
-            ctx.fillText(q.v1, cx, cy - rh/2 - 15); // Width
-            ctx.fillText(q.v2, cx + rw/2 + 15, cy); // Height
+            ctx.fillText(q.v1, cx, cy - rh/2 - 15);
+            ctx.fillText(q.v2, cx + rw/2 + 15, cy);
         }
         else if (q.shape === 'tri') {
-            // Draw Right Triangle
             ctx.beginPath();
             const base = 120, height = 100;
             const left = cx - base/2 + 20;
             const bottom = cy + height/2 - 10;
-            
             ctx.moveTo(left, bottom);
-            ctx.lineTo(left + base, bottom); // Base line
-            ctx.lineTo(left, bottom - height); // Top point
+            ctx.lineTo(left + base, bottom);
+            ctx.lineTo(left, bottom - height);
             ctx.closePath();
             ctx.stroke();
+            // Height line
+            ctx.beginPath(); ctx.setLineDash([5, 5]);
+            ctx.moveTo(left, bottom); ctx.lineTo(left, bottom - height);
+            ctx.stroke(); ctx.setLineDash([]);
             
-            // Right angle mark
-            ctx.beginPath();
-            ctx.rect(left, bottom - 15, 15, 15);
-            ctx.stroke();
-            
-            // Labels
             ctx.fillText(q.v1, left + base/2, bottom + 20); // Base
             ctx.fillText(q.v2, left - 20, bottom - height/2); // Height
         }
-        else if (q.shape === 'circle') {
+        // --- NEW SHAPE: PARALLELOGRAM ---
+        else if (q.shape === 'parallelogram') {
+            const b = 140; // visual base width
+            const h = 80;  // visual height
+            const slant = 40;
+            const x = cx - b/2; 
+            const y = cy + h/2; // bottom-left y
+            
             ctx.beginPath();
-            const r = 50;
-            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.moveTo(x, y); 
+            ctx.lineTo(x + b, y); // bottom
+            ctx.lineTo(x + b + slant, y - h); // right slant
+            ctx.lineTo(x + slant, y - h); // top
+            ctx.closePath();
             ctx.stroke();
-            // Radius Line
+            
+            // Height line
+            ctx.beginPath(); ctx.setLineDash([5, 5]);
+            ctx.moveTo(x + slant, y - h); ctx.lineTo(x + slant, y); 
+            ctx.stroke(); ctx.setLineDash([]);
+            
+            ctx.fillText(q.v1, cx + slant/2, y + 20); // Base Label
+            ctx.fillText(q.v2, x + slant - 20, cy);   // Height Label
+        }
+        // --- NEW SHAPE: TRAPEZOID ---
+        else if (q.shape === 'trapezoid') {
+            const topW = 80;
+            const botW = 160;
+            const h = 90;
+            const yBot = cy + h/2;
+            const yTop = cy - h/2;
+            const xCenter = cx;
+            
             ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            ctx.lineTo(cx + r, cy);
-            ctx.strokeStyle = '#facc15'; // Yellow radius
+            ctx.moveTo(xCenter - botW/2, yBot); // Bottom Left
+            ctx.lineTo(xCenter + botW/2, yBot); // Bottom Right
+            ctx.lineTo(xCenter + topW/2, yTop); // Top Right
+            ctx.lineTo(xCenter - topW/2, yTop); // Top Left
+            ctx.closePath();
             ctx.stroke();
-            // Label
-            ctx.fillStyle = '#facc15';
-            ctx.fillText("r=" + q.v1, cx + r/2, cy - 10);
+            
+            // Height line
+            ctx.beginPath(); ctx.setLineDash([5, 5]);
+            ctx.moveTo(xCenter, yTop); ctx.lineTo(xCenter, yBot);
+            ctx.stroke(); ctx.setLineDash([]);
+
+            ctx.fillText(q.v1, xCenter, yTop - 20); // Top Base
+            ctx.fillText(q.v2, xCenter, yBot + 20); // Bottom Base
+            ctx.fillText(q.v3, xCenter + 15, cy);   // Height
+        }
+        // --- 3D SHAPES ---
+        else if (q.shape === 'cube') {
+            const size = 80;
+            const offset = 40; 
+            const x = cx - size/2 - 20;
+            const y = cy - size/2 + 20;
+            
+            ctx.strokeRect(x, y, size, size);
+            ctx.strokeRect(x + offset, y - offset, size, size);
+            ctx.beginPath();
+            ctx.moveTo(x, y); ctx.lineTo(x + offset, y - offset);
+            ctx.moveTo(x + size, y); ctx.lineTo(x + size + offset, y - offset);
+            ctx.moveTo(x, y + size); ctx.lineTo(x + offset, y + size - offset);
+            ctx.moveTo(x + size, y + size); ctx.lineTo(x + size + offset, y + size - offset);
+            ctx.stroke();
+            ctx.fillText(q.v1, x + size/2, y + size + 20);
+        }
+        else if (q.shape === 'cuboid') {
+            const w = 100, h = 60;
+            const offset = 40;
+            const x = cx - w/2 - 20;
+            const y = cy - h/2 + 20;
+            
+            ctx.strokeRect(x, y, w, h);
+            ctx.strokeRect(x + offset, y - offset, w, h);
+            ctx.beginPath();
+            ctx.moveTo(x, y); ctx.lineTo(x + offset, y - offset);
+            ctx.moveTo(x + w, y); ctx.lineTo(x + w + offset, y - offset);
+            ctx.moveTo(x, y + h); ctx.lineTo(x + offset, y + h - offset);
+            ctx.moveTo(x + w, y + h); ctx.lineTo(x + w + offset, y + h - offset);
+            ctx.stroke();
+
+            ctx.fillText(q.v1, x + w/2, y + h + 20); 
+            ctx.fillText(q.v2, x + w + offset + 20, y + h/2); 
+            ctx.fillText(q.v3, x - 20, y + h/2); 
         }
 
-        // Draw the Question text below the shape
         ctx.fillStyle = 'white';
         ctx.font = "bold 24px 'Roboto Mono'";
         ctx.fillText(q.qText, cx, cy + 90);
