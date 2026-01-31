@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Math Arena V31: S1 Final</title>
+    <title>Math Arena V32: Fair Play</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -26,35 +26,37 @@
         /* Buttons */
         .btn-primary { @apply bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-6 rounded-lg shadow-[0_0_15px_rgba(8,145,178,0.5)] transform transition active:scale-95 w-full mb-3; }
         
-        /* Topic Buttons */
-        .topic-btn { @apply border border-slate-600 text-slate-300 py-2 rounded text-xs font-bold transition-all bg-slate-800 hover:bg-slate-700; }
-        .topic-btn.active { @apply border-cyan-400 text-white bg-cyan-900 shadow-[0_0_10px_rgba(34,211,238,0.3)] ring-1 ring-cyan-400; }
+        /* Topic Buttons - Enhanced Backlight */
+        .topic-btn { @apply border border-slate-600 text-slate-400 py-3 rounded text-xs font-bold transition-all bg-slate-800 hover:bg-slate-700 relative overflow-hidden; }
+        .topic-btn.active { 
+            @apply border-cyan-300 text-white bg-cyan-700; 
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.6), inset 0 0 10px rgba(34, 211, 238, 0.4);
+            transform: scale(1.02);
+            z-index: 1;
+        }
 
         /* Mode Buttons */
-        .mode-btn { @apply border border-slate-600 text-slate-400 py-2 rounded text-sm font-bold; }
-        .mode-btn.active { @apply border-green-500 text-green-400 bg-green-900/30 shadow-[0_0_10px_rgba(74,222,128,0.3)]; }
+        .mode-btn { @apply border border-slate-600 text-slate-400 py-2 rounded text-sm font-bold bg-slate-800; }
+        .mode-btn.active { @apply border-green-400 text-green-100 bg-green-800 shadow-[0_0_15px_rgba(74,222,128,0.4)]; }
+        
+        /* Sync Buttons */
+        .sync-btn { @apply border border-slate-600 text-slate-400 py-2 rounded text-sm font-bold bg-slate-800; }
+        .sync-btn.active { @apply border-purple-400 text-purple-100 bg-purple-800 shadow-[0_0_15px_rgba(192,132,252,0.4)]; }
 
-        /* Avatar Selection - Enhanced with Backlight */
+        /* Avatar Selection */
         .avatar-btn { 
             @apply text-6xl p-4 rounded-2xl border-2 border-slate-700 transition-all cursor-pointer grayscale opacity-60 bg-slate-800 flex justify-center items-center h-24 w-24 mx-auto; 
         }
         .avatar-btn.selected { 
             @apply bg-yellow-900/40 grayscale-0 opacity-100 scale-110 z-10; 
             border-color: #fbbf24; 
-            box-shadow: 0 0 25px 5px rgba(251, 191, 36, 0.5), inset 0 0 10px rgba(251, 191, 36, 0.2); 
-            animation: pulse-gold 2s infinite;
+            box-shadow: 0 0 30px 5px rgba(251, 191, 36, 0.6); 
         }
         .avatar-btn.taken { @apply opacity-20 cursor-not-allowed border-red-900 bg-slate-900 scale-90 grayscale; }
 
-        @keyframes pulse-gold {
-            0% { box-shadow: 0 0 25px 5px rgba(251, 191, 36, 0.5); }
-            50% { box-shadow: 0 0 35px 10px rgba(251, 191, 36, 0.7); }
-            100% { box-shadow: 0 0 25px 5px rgba(251, 191, 36, 0.5); }
-        }
-
         /* Z-Index Layers */
         #view-game { z-index: 10; }
-        #view-podium { z-index: 200 !important; background-color: #050510; } /* Raised Z-Index */
+        #view-podium { z-index: 200 !important; background-color: #050510; }
         #view-rankings { z-index: 201 !important; background-color: #050510; }
         
         .podium-enter { opacity: 1 !important; transform: translateY(0) !important; visibility: visible !important; transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -69,34 +71,43 @@
         <button onclick="setupHost()" class="btn-primary border-l-4 border-cyan-300 text-xl py-6">📡 HOST CLASS</button>
     </div>
 
-    <div id="view-host-lobby" class="w-full h-full p-6 hidden flex-col max-w-5xl mx-auto">
-        <h2 class="text-3xl text-cyan-400 font-display mb-4 border-b border-slate-700 pb-2">CLASSROOM CONTROL</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-            <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 flex flex-col items-center relative">
+    <div id="view-host-lobby" class="w-full h-full p-4 hidden flex-col max-w-6xl mx-auto">
+        <h2 class="text-2xl text-cyan-400 font-display mb-2 border-b border-slate-700 pb-1">CLASSROOM CONTROL</h2>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 h-full">
+            <div class="md:col-span-5 bg-slate-900 p-4 rounded-xl border border-slate-700 flex flex-col items-center relative">
                 <div class="bg-white p-2 rounded-lg mb-2"><div id="qrcode"></div></div>
                 <div class="text-xl font-bold text-white mb-2" id="join-count-display">0 STUDENTS</div>
-                <div id="player-grid" class="mt-2 flex flex-wrap justify-center gap-2 w-full max-h-48 overflow-y-auto content-start"></div>
+                <div id="player-grid" class="mt-2 flex flex-wrap justify-center gap-2 w-full max-h-60 overflow-y-auto content-start"></div>
             </div>
             
-            <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 flex flex-col overflow-y-auto">
+            <div class="md:col-span-7 bg-slate-900 p-4 rounded-xl border border-slate-700 flex flex-col overflow-y-auto">
                 
-                <div class="mb-4">
-                    <label class="block text-slate-400 text-xs mb-2 font-bold uppercase tracking-widest">Select S1 Topic</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button class="topic-btn active" onclick="setTopic('integers')" id="btn-topic-integers">🔢 Integers (+/-)</button>
-                        <button class="topic-btn" onclick="setTopic('algebra')" id="btn-topic-algebra">✖️ Algebra (Eqn)</button>
-                        <button class="topic-btn" onclick="setTopic('percent')" id="btn-topic-percent">％ Percentages</button>
-                        <button class="topic-btn" onclick="setTopic('geometry')" id="btn-topic-geometry">📐 Area & Vol</button>
-                        <button class="topic-btn" onclick="setTopic('coords')" id="btn-topic-coords">📍 Coordinates</button>
-                        <button class="topic-btn" onclick="setTopic('mixed')" id="btn-topic-mixed">🎲 S1 Mixed</button>
+                <div class="mb-5">
+                    <label class="block text-slate-400 text-xs mb-2 font-bold uppercase tracking-widest">1. Select Topic</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button class="topic-btn active" onclick="setTopic('integers')" id="btn-topic-integers">🔢 Integers</button>
+                        <button class="topic-btn" onclick="setTopic('algebra')" id="btn-topic-algebra">✖️ Algebra</button>
+                        <button class="topic-btn" onclick="setTopic('percent')" id="btn-topic-percent">％ Percent</button>
+                        <button class="topic-btn" onclick="setTopic('geometry')" id="btn-topic-geometry">📐 Area/Vol</button>
+                        <button class="topic-btn" onclick="setTopic('coords')" id="btn-topic-coords">📍 Coords</button>
+                        <button class="topic-btn" onclick="setTopic('mixed')" id="btn-topic-mixed">🎲 Mixed</button>
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-slate-400 text-xs mb-2 font-bold uppercase">Game Mode</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button class="mode-btn active" onclick="setMode('time')" id="btn-mode-time">⏱️ Time Limit</button>
-                        <button class="mode-btn" onclick="setMode('score')" id="btn-mode-score">🏁 Score Race</button>
+                <div class="grid grid-cols-2 gap-4 mb-5">
+                    <div>
+                        <label class="block text-slate-400 text-xs mb-2 font-bold uppercase">2. End Condition</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="mode-btn active" onclick="setMode('time')" id="btn-mode-time">⏱️ Time</button>
+                            <button class="mode-btn" onclick="setMode('score')" id="btn-mode-score">🏁 Score</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-xs mb-2 font-bold uppercase">3. Question Pool</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="sync-btn" onclick="setSync('random')" id="btn-sync-random">🔀 Random</button>
+                            <button class="sync-btn active" onclick="setSync('sequence')" id="btn-sync-sequence">📜 Same Set</button>
+                        </div>
                     </div>
                 </div>
 
@@ -191,19 +202,25 @@
             <div id="podium-2" class="podium-hidden flex flex-col items-center mx-1 md:mx-4">
                 <div class="text-5xl mb-2" id="p2-avatar"></div>
                 <div class="text-white font-bold text-sm truncate w-20 md:w-32" id="p2-name"></div>
-                <div class="w-20 md:w-32 h-32 bg-slate-700 rounded-t-lg border-t-4 border-slate-400 flex items-end justify-center pb-2 shadow-lg"><span class="text-3xl font-black text-slate-500">2</span></div>
+                <div class="w-20 md:w-32 h-32 bg-slate-700 rounded-t-lg border-t-4 border-slate-400 flex items-end justify-center pb-2 shadow-lg">
+                    <span class="text-3xl font-black text-slate-500" id="p2-rank-display">2</span>
+                </div>
                 <div class="mt-2 text-cyan-400 font-bold" id="p2-score"></div>
             </div>
             <div id="podium-1" class="podium-hidden flex flex-col items-center mx-1 md:mx-4 z-20">
                 <div class="text-8xl mb-2 animate-bounce" id="p1-avatar"></div>
                 <div class="text-yellow-400 font-bold text-xl neon-gold truncate w-24 md:w-40" id="p1-name"></div>
-                <div class="w-24 md:w-40 h-48 bg-gradient-to-b from-yellow-600 to-yellow-800 rounded-t-lg border-t-4 border-yellow-400 flex items-end justify-center pb-4 shadow-[0_0_30px_rgba(234,179,8,0.4)]"><span class="text-5xl font-black text-yellow-900/50">1</span></div>
+                <div class="w-24 md:w-40 h-48 bg-gradient-to-b from-yellow-600 to-yellow-800 rounded-t-lg border-t-4 border-yellow-400 flex items-end justify-center pb-4 shadow-[0_0_30px_rgba(234,179,8,0.4)]">
+                    <span class="text-5xl font-black text-yellow-900/50" id="p1-rank-display">1</span>
+                </div>
                 <div class="mt-2 text-yellow-400 text-2xl font-black" id="p1-score"></div>
             </div>
             <div id="podium-3" class="podium-hidden flex flex-col items-center mx-1 md:mx-4">
                 <div class="text-5xl mb-2" id="p3-avatar"></div>
                 <div class="text-white font-bold text-sm truncate w-20 md:w-32" id="p3-name"></div>
-                <div class="w-20 md:w-32 h-24 bg-orange-900 rounded-t-lg border-t-4 border-orange-700 flex items-end justify-center pb-2 shadow-lg"><span class="text-3xl font-black text-orange-900/50">3</span></div>
+                <div class="w-20 md:w-32 h-24 bg-orange-900 rounded-t-lg border-t-4 border-orange-700 flex items-end justify-center pb-2 shadow-lg">
+                    <span class="text-3xl font-black text-orange-900/50" id="p3-rank-display">3</span>
+                </div>
                 <div class="mt-2 text-cyan-400 font-bold" id="p3-score"></div>
             </div>
         </div>
@@ -247,9 +264,14 @@
         avatar: savedAvatar || '',
         score: 0, 
         active: false,
-        settings: { mode: 'time', target: 60, topic: 'integers' }, 
-        q: null, input: '', endTime: 0,
-        hostLoop: null
+        settings: { mode: 'time', target: 60, topic: 'integers', sync: 'sequence' }, 
+        q: null, 
+        qText: '', 
+        input: '', 
+        endTime: 0,
+        hostLoop: null,
+        sharedQuestions: [], // For sync mode
+        currentQIndex: 0
     };
 
     let localTimerInterval = null;
@@ -302,6 +324,7 @@
         // Init Defaults
         setMode('time');
         setTopic('integers');
+        setSync('sequence');
 
         const ref = db.ref('games').push();
         state.gameId = ref.key;
@@ -360,6 +383,13 @@
         if(state.gameId) db.ref(`games/${state.gameId}/settings`).update(state.settings);
     }
 
+    function setSync(type) {
+        state.settings.sync = type;
+        document.getElementById('btn-sync-random').classList.toggle('active', type === 'random');
+        document.getElementById('btn-sync-sequence').classList.toggle('active', type === 'sequence');
+        if(state.gameId) db.ref(`games/${state.gameId}/settings`).update(state.settings);
+    }
+
     function updateSettingsDisplay() {
         const slider = document.getElementById('setting-slider');
         state.settings.target = parseInt(slider.value);
@@ -373,6 +403,13 @@
         if(state.settings.mode === 'time') {
             state.endTime = Date.now() + (state.settings.target * 1000);
             updateData.endTime = state.endTime;
+        }
+
+        // If 'Same Set' is selected, generate 100 questions and upload them
+        if(state.settings.sync === 'sequence') {
+            const pool = [];
+            for(let i=0; i<100; i++) pool.push(createMathProblem(state.settings.topic));
+            updateData.questionPool = pool;
         }
 
         db.ref(`games/${state.gameId}`).update(updateData);
@@ -406,7 +443,6 @@
             if(game.players) {
                 const players = Object.values(game.players).sort((a,b)=>(b.score||0)-(a.score||0));
                 
-                // Score Mode Win Check
                 if (state.role==='host' && game.status==='playing' && game.settings.mode==='score' && players[0].score >= game.settings.target) {
                     executeGameFinish();
                 }
@@ -429,7 +465,19 @@
                     p.score = parseInt(p.score) || 0;
                     arr.push(p);
                 });
+                
+                // Sort by score DESC
                 arr.sort((a,b) => b.score - a.score);
+
+                // Assign Rank (handling ties: 1, 1, 2)
+                let currentRank = 1;
+                for(let i=0; i<arr.length; i++) {
+                    if (i > 0 && arr[i].score < arr[i-1].score) {
+                        currentRank++; // Dense ranking: 1, 1, 2
+                    }
+                    arr[i].rank = currentRank;
+                }
+
                 db.ref(`games/${state.gameId}`).update({ status: 'results', finalStandings: arr });
             });
         }, 1500);
@@ -437,11 +485,13 @@
 
     function renderLanes(players, target, mode) {
         const container = document.getElementById('lanes-container');
-        const maxScore = mode==='score' ? target : Math.max(target*10, (players[0].score||0)*1.2); // Time mode scaling
-        
+        const topScore = players[0]?.score || 1;
+        // Visual Scaling
+        const scaleBase = mode === 'score' ? target : Math.max(1000, topScore * 1.2);
+
         players.forEach((p, index) => {
             let el = document.getElementById(`lane-${p.name}`);
-            const pct = Math.min(100, ((p.score||0)/maxScore)*100);
+            const pct = Math.min(100, ((p.score||0)/scaleBase)*100);
             if (!el) {
                 el = document.createElement('div');
                 el.id = `lane-${p.name}`;
@@ -526,11 +576,13 @@
             state.settings = game.settings;
             
             if (game.status === 'playing') {
+                if(game.questionPool) state.sharedQuestions = game.questionPool; // Load shared pool
+                
                 document.getElementById('game-freeze-overlay').classList.add('hidden');
                 if (!state.active) {
                     state.active = true;
                     showView('view-game');
-                    if(!state.q) generateQuestion();
+                    if(!state.q) generateQuestion(); // First Question
                     startLocalTicker(game.endTime, 'client-timer-display');
                     requestAnimationFrame(gameRenderLoop);
                 }
@@ -564,34 +616,28 @@
         }
     }
 
-    // ================= S1 MATH QUESTION GENERATOR =================
+    // ================= S1 MATH ENGINE (SHARED OR RANDOM) =================
     
-    function generateQuestion() {
-        const topic = state.settings.topic || 'mixed';
+    // Helper to Create 1 Problem Object
+    function createMathProblem(topic) {
         let t = topic;
-        
         if (topic === 'mixed') {
             const types = ['integers', 'algebra', 'percent', 'geometry', 'coords'];
             t = types[Math.floor(Math.random() * types.length)];
         }
 
-        let qStr = "";
-        let ans = 0;
+        let qStr = "", ans = 0;
 
-        // 1. Directed Numbers (正負數)
+        // 1. Integers
         if (t === 'integers') {
             const a = rInt(-10, 15);
             const b = rInt(-10, 15);
             const op = Math.random() > 0.5 ? '+' : '-';
-            if(op === '+') ans = a + b;
-            else ans = a - b;
-            
-            // Format for easy reading: -5 + (-3)
+            ans = (op === '+') ? a + b : a - b;
             const bStr = b < 0 ? `(${b})` : b;
             qStr = `${a} ${op} ${bStr} = ?`;
         }
-        
-        // 2. Algebra (一元一次方程)
+        // 2. Algebra
         else if (t === 'algebra') {
             const x = rInt(2, 12); 
             const type = Math.random();
@@ -607,16 +653,14 @@
                 ans = x;
             }
         }
-        
-        // 3. Percentages (百分數)
+        // 3. Percent
         else if (t === 'percent') {
             const base = rInt(1, 10) * 100; 
             const rate = rInt(1, 9) * 10;   
             ans = (rate / 100) * base;
             qStr = `${rate}% of ${base} = ?`;
         }
-        
-        // 4. Geometry (Area/Vol)
+        // 4. Geometry
         else if (t === 'geometry') {
             const shape = Math.random();
             if (shape < 0.4) {
@@ -626,7 +670,7 @@
             } else if (shape < 0.7) {
                 const l = rInt(4, 10);
                 const w = rInt(2, 8);
-                qStr = `Rectangle ${l} by ${w}. Area?`;
+                qStr = `Rect ${l} by ${w}. Area?`;
                 ans = l * w;
             } else {
                 const l = rInt(2, 5);
@@ -636,51 +680,58 @@
                 ans = l * w * h;
             }
         }
-        
-        // 5. Coordinates (坐標)
+        // 5. Coords
         else if (t === 'coords') {
             if (Math.random() < 0.6) {
-                // Quadrant Check
                 let x = rInt(1, 9) * (Math.random()<.5?1:-1);
                 let y = rInt(1, 9) * (Math.random()<.5?1:-1);
-                qStr = `P(${x}, ${y}) is in Quadrant?`;
-                if(x>0 && y>0) ans = 1;
-                else if(x<0 && y>0) ans = 2;
-                else if(x<0 && y<0) ans = 3;
-                else ans = 4;
+                qStr = `P(${x}, ${y}) is in Q?`;
+                if(x>0 && y>0) ans = 1; else if(x<0 && y>0) ans = 2; else if(x<0 && y<0) ans = 3; else ans = 4;
             } else {
-                // Distance to origin (on axis)
                 const v = rInt(3, 15);
-                qStr = `Dist from (${v}, 0) to O?`;
+                qStr = `Dist (${v}, 0) to O?`;
                 ans = v;
             }
         }
+        return { q: qStr, a: ans };
+    }
 
-        state.q = { ans: ans };
+    function generateQuestion() {
+        // If Sync Mode is ON and we have questions
+        if (state.settings.sync === 'sequence' && state.sharedQuestions.length > 0) {
+            const p = state.sharedQuestions[state.currentQIndex];
+            if(p) {
+                state.q = { ans: p.a };
+                state.qText = p.q;
+            } else {
+                // Out of questions? Loop or Random fallback
+                const fallback = createMathProblem(state.settings.topic);
+                state.q = { ans: fallback.a };
+                state.qText = fallback.q;
+            }
+        } 
+        else {
+            // Random Mode
+            const p = createMathProblem(state.settings.topic);
+            state.q = { ans: p.a };
+            state.qText = p.q;
+        }
+
         state.input = '';
         updateInputDisplay();
     }
 
-    function rInt(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
+    function rInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
     function input(val) {
         if(!state.active) return;
-        if (val === 'DEL') {
-            state.input = state.input.slice(0, -1);
-        } else {
-            if (state.input.length < 8) {
-                state.input += val;
-                playTone(800, 'sine', 0.05);
-            }
-        }
+        if (val === 'DEL') state.input = state.input.slice(0, -1);
+        else if (state.input.length < 8) { state.input += val; playTone(800, 'sine', 0.05); }
         updateInputDisplay();
     }
 
     function updateInputDisplay() {
-        const el = document.getElementById('input-display');
-        el.innerText = state.input === '' ? '_' : state.input;
+        document.getElementById('input-display').innerText = state.input === '' ? '_' : state.input;
     }
 
     function checkAnswer() {
@@ -692,10 +743,9 @@
             playTone(1200, 'triangle', 0.1);
             showFeedback('Correct!', 'text-green-400');
             state.score += 100;
+            state.currentQIndex++; // Advance index
             document.getElementById('client-score').innerText = state.score + " PTS";
-            if(state.gameId && state.playerId) {
-                db.ref(`games/${state.gameId}/players/${state.playerId}/score`).set(state.score);
-            }
+            if(state.gameId && state.playerId) db.ref(`games/${state.gameId}/players/${state.playerId}/score`).set(state.score);
             generateQuestion();
         } else {
             playTone(200, 'sawtooth', 0.3);
@@ -713,12 +763,10 @@
         el.innerText = text;
         el.className = `absolute top-1/3 left-1/2 -translate-x-1/2 text-5xl font-black pointer-events-none z-30 transition-all duration-500 transform scale-150 ${colorClass}`;
         el.style.opacity = 1;
-        setTimeout(() => {
-            el.style.opacity = 0;
-            el.style.transform = "translate(-50%, -50%) scale(0.5)";
-        }, 800);
+        setTimeout(() => { el.style.opacity = 0; el.style.transform = "translate(-50%, -50%) scale(0.5)"; }, 800);
     }
 
+    // ================= DRAWING =================
     let canvas, ctx;
     function resizeCanvas() {
         canvas = document.getElementById('gameCanvas');
@@ -737,11 +785,10 @@
     }
 
     function drawGame() {
-        if(!ctx || !state.q) return;
+        if(!ctx || !state.qText) return;
         ctx.fillStyle = '#0f172a';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Card Background
         ctx.fillStyle = '#1e293b'; 
         const cardW = Math.min(320, canvas.width - 20);
         const cardH = 180;
@@ -752,30 +799,27 @@
         ctx.roundRect(cardX, cardY, cardW, cardH, 20);
         ctx.fill();
         
-        // Pulse Effect
         const time = Date.now() / 1000;
         ctx.lineWidth = 4;
         ctx.strokeStyle = `rgba(34, 211, 238, ${0.5 + Math.sin(time * 3) * 0.2})`;
         ctx.stroke();
 
-        // Text Handling
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        const qText = (state.qText || ""); // Global question text
-        if (qText.length > 15) {
-             ctx.font = `bold 22px "Roboto Mono"`; // Smaller font for long questions
-             const words = qText.split('. ');
+        if (state.qText.length > 15) {
+             ctx.font = `bold 22px "Roboto Mono"`; 
+             const words = state.qText.split('. ');
              if(words.length > 1) {
                  ctx.fillText(words[0], canvas.width/2, canvas.height/2 - 15);
                  ctx.fillText(words[1], canvas.width/2, canvas.height/2 + 15);
              } else {
-                 ctx.fillText(qText, canvas.width/2, canvas.height/2);
+                 ctx.fillText(state.qText, canvas.width/2, canvas.height/2);
              }
         } else {
             ctx.font = `bold 36px "Roboto Mono"`;
-            ctx.fillText(qText, canvas.width/2, canvas.height/2);
+            ctx.fillText(state.qText, canvas.width/2, canvas.height/2);
         }
     }
 
@@ -799,15 +843,19 @@
     function renderPodium(list) {
         if(!list) list = [];
         const ids = ['podium-1', 'podium-2', 'podium-3'];
-        
-        // Reset classes
         ids.forEach(id => {
             const el = document.getElementById(id);
             el.className = 'podium-hidden flex flex-col items-center mx-1 md:mx-4'; 
             if(id === 'podium-1') el.classList.add('z-20');
         });
 
-        const showRank = (rankDivId, pData, delayIdx) => {
+        // Helper to update visual rank number (handle ties)
+        const updateRankNum = (pos, rank) => {
+            const map = {0: 'p1-rank-display', 1: 'p2-rank-display', 2: 'p3-rank-display'};
+            if(document.getElementById(map[pos])) document.getElementById(map[pos]).innerText = rank;
+        };
+
+        const showRank = (rankDivId, pData, posIndex) => {
             if(!pData) return;
             const el = document.getElementById(rankDivId);
             const rankNum = (rankDivId === 'podium-1') ? 1 : (rankDivId === 'podium-2' ? 2 : 3);
@@ -816,15 +864,19 @@
             document.getElementById(`p${rankNum}-avatar`).innerText = pData.avatar;
             document.getElementById(`p${rankNum}-score`).innerText = pData.score + " PTS";
             
+            // Show actual calculated rank (e.g., "1" instead of "2" if tied)
+            updateRankNum(posIndex, pData.rank);
+
             setTimeout(() => { 
                 el.classList.remove('podium-hidden');
                 el.classList.add('podium-enter'); 
-            }, delayIdx * 300);
+            }, posIndex * 300);
         };
 
-        if(list[0]) showRank('podium-1', list[0], 2); // 1st place last
-        if(list[1]) showRank('podium-2', list[1], 0);
-        if(list[2]) showRank('podium-3', list[2], 1);
+        // Render Top 3 slots, but using data from 0,1,2
+        if(list[0]) showRank('podium-1', list[0], 0); 
+        if(list[1]) showRank('podium-2', list[1], 1);
+        if(list[2]) showRank('podium-3', list[2], 2);
     }
 
     function showFullRankingList(list) {
@@ -836,7 +888,7 @@
         if(!list) return;
 
         list.forEach((p, idx) => {
-            const rank = idx + 1;
+            const rank = p.rank || (idx + 1); // Use calculated rank
             let colorClass = "text-white";
             if(rank === 1) colorClass = "text-yellow-400 font-bold";
             else if(rank === 2) colorClass = "text-slate-300 font-bold";
