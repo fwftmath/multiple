@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Math Arena V21.1: Polished S1 Edition</title>
+    <title>Math Arena V21.2: Stable S1 Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -23,17 +23,12 @@
         .btn-topic { @apply bg-slate-800 hover:bg-slate-700 border border-slate-600 text-cyan-400 font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95 flex flex-col items-center justify-center gap-2; }
         .btn-topic:active { @apply bg-cyan-900 border-cyan-400; }
 
-        /* Avatar Styling - Fixed Glow */
-        .avatar-btn { 
-            @apply text-4xl p-4 rounded-xl border-2 border-slate-700 transition-all cursor-pointer grayscale opacity-60 bg-slate-800 flex items-center justify-center; 
-        }
+        /* Avatar Styling */
+        .avatar-btn { @apply text-4xl p-4 rounded-xl border-2 border-slate-700 transition-all cursor-pointer grayscale opacity-60 bg-slate-800 flex items-center justify-center; }
         .avatar-btn.selected { 
             @apply grayscale-0 opacity-100 scale-110 z-10 text-black;
-            background-color: #fbbf24; /* Tailwind yellow-400 */
-            border-color: #f59e0b;     /* Tailwind amber-500 */
-            box-shadow: 0 0 25px rgba(251, 191, 36, 0.8);
+            background-color: #fbbf24; border-color: #f59e0b; box-shadow: 0 0 25px rgba(251, 191, 36, 0.8);
         }
-        .avatar-btn.taken { @apply opacity-20 cursor-not-allowed border-red-900 bg-slate-900 scale-90 grayscale; }
 
         /* Keypad & Lane */
         .key-btn { @apply active:scale-95 transition-transform shadow-lg; }
@@ -55,7 +50,6 @@
 
     <div id="view-topic-select" class="w-full h-full p-6 hidden flex-col max-w-4xl mx-auto z-50">
         <h2 class="text-3xl text-cyan-400 font-display mb-2 text-center">SELECT TOPIC</h2>
-        <p class="text-center text-slate-500 mb-6">Choose HK S1 Curriculum Module</p>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 overflow-y-auto pb-20">
             <button onclick="selectTopic('area')" class="btn-topic"><span class="text-3xl">📐</span><span>AREA &<br>SHAPES</span></button>
             <button onclick="selectTopic('volume')" class="btn-topic"><span class="text-3xl">📦</span><span>VOLUME</span></button>
@@ -148,17 +142,37 @@
                 <div id="input-display" class="text-3xl font-mono font-bold tracking-[0.2em] text-white">_</div>
                 <div id="hint-display" class="text-xs text-yellow-500/80 font-mono mt-1"></div>
             </div>
-            <div class="grid grid-cols-3 gap-1 h-full pb-safe" id="keypad-grid">
-                </div>
+            <div class="grid grid-cols-3 gap-1 h-full pb-safe" id="keypad-grid"></div>
         </div>
     </div>
 
     <div id="view-podium" class="text-center w-full hidden z-[100] bg-slate-950 absolute inset-0 flex flex-col items-center justify-center">
         <h1 class="text-5xl font-display text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 mb-12 neon-gold z-10">CHAMPIONS</h1>
         <div class="flex items-end justify-center w-full max-w-4xl px-2 z-10" id="podium-container">
-            <div id="podium-2" class="flex flex-col items-center mx-2 opacity-0"><div class="text-4xl mb-2" id="p2-avatar"></div><div class="text-white text-sm" id="p2-name"></div><div class="w-24 h-32 bg-slate-700 rounded-t-lg border-t-4 border-slate-400 flex items-end justify-center pb-2"><span class="text-3xl font-black text-slate-500">2</span></div><div class="text-cyan-400 font-bold" id="p2-score"></div></div>
-            <div id="podium-1" class="flex flex-col items-center mx-2 opacity-0 z-20"><div class="text-7xl mb-2 animate-bounce" id="p1-avatar"></div><div class="text-yellow-400 font-bold text-xl neon-gold" id="p1-name"></div><div class="w-32 h-48 bg-gradient-to-b from-yellow-600 to-yellow-800 rounded-t-lg border-t-4 border-yellow-400 flex items-end justify-center pb-4"><span class="text-5xl font-black text-yellow-900/50">1</span></div><div class="text-yellow-400 text-2xl font-black" id="p1-score"></div></div>
-            <div id="podium-3" class="flex flex-col items-center mx-2 opacity-0"><div class="text-4xl mb-2" id="p3-avatar"></div><div class="text-white text-sm" id="p3-name"></div><div class="w-24 h-24 bg-orange-900 rounded-t-lg border-t-4 border-orange-700 flex items-end justify-center pb-2"><span class="text-3xl font-black text-orange-900/50">3</span></div><div class="text-cyan-400 font-bold" id="p3-score"></div></div>
+            <div id="podium-2" class="flex flex-col items-center mx-2 opacity-0 transform translate-y-full transition-all duration-700">
+                <div class="text-4xl mb-2" id="p2-avatar"></div>
+                <div class="text-white text-sm" id="p2-name"></div>
+                <div class="w-24 h-32 bg-slate-700 rounded-t-lg border-t-4 border-slate-400 flex items-end justify-center pb-2 shadow-[0_0_20px_rgba(148,163,184,0.3)]">
+                    <span class="text-3xl font-black text-slate-500">2</span>
+                </div>
+                <div class="text-cyan-400 font-bold" id="p2-score"></div>
+            </div>
+            <div id="podium-1" class="flex flex-col items-center mx-2 opacity-0 transform translate-y-full transition-all duration-700 z-20">
+                <div class="text-7xl mb-2 animate-bounce" id="p1-avatar"></div>
+                <div class="text-yellow-400 font-bold text-xl neon-gold" id="p1-name"></div>
+                <div class="w-32 h-48 bg-gradient-to-b from-yellow-600 to-yellow-800 rounded-t-lg border-t-4 border-yellow-400 flex items-end justify-center pb-4 shadow-[0_0_40px_rgba(234,179,8,0.5)]">
+                    <span class="text-5xl font-black text-yellow-900/50">1</span>
+                </div>
+                <div class="text-yellow-400 text-2xl font-black" id="p1-score"></div>
+            </div>
+            <div id="podium-3" class="flex flex-col items-center mx-2 opacity-0 transform translate-y-full transition-all duration-700">
+                <div class="text-4xl mb-2" id="p3-avatar"></div>
+                <div class="text-white text-sm" id="p3-name"></div>
+                <div class="w-24 h-24 bg-orange-900 rounded-t-lg border-t-4 border-orange-700 flex items-end justify-center pb-2 shadow-[0_0_20px_rgba(124,45,18,0.3)]">
+                    <span class="text-3xl font-black text-orange-900/50">3</span>
+                </div>
+                <div class="text-cyan-400 font-bold" id="p3-score"></div>
+            </div>
         </div>
     </div>
     <div id="view-rankings" class="w-full h-full hidden z-[101] bg-slate-950 absolute inset-0 flex flex-col p-6">
@@ -170,17 +184,33 @@
     </div>
 
 <script>
-    // --- FIREBASE CONFIG ---
+    // --- FIREBASE SETUP ---
     const firebaseConfig = { apiKey: "AIzaSyAYnQB2o5cPn42RiNAik7537ihduICJwdQ", authDomain: "fwftmath.firebaseapp.com", projectId: "fwftmath", storageBucket: "fwftmath.firebasestorage.app", messagingSenderId: "70090299689", appId: "1:70090299689:web:ae300db1f79a3eda62bf38" };
     let app, db;
     try { app = firebase.initializeApp(firebaseConfig); db = firebase.database(); 
         db.ref(".info/connected").on("value", s => document.getElementById('db-status').innerText = s.val()?"🟢 ONLINE":"🟠 CONNECTING...");
     } catch(e){console.error(e);}
 
-    // --- GAME STATE ---
+    // --- GAME CONSTANTS & AUDIO ---
     const AVATARS = ['🐯','🐰','🦁','🦄','🦖','👽','🤖','🐼','🦊','🐨','🐮','🐷'];
     const AUDIO = new (window.AudioContext||window.webkitAudioContext)();
-    function playTone(f,t,d){if(AUDIO.state==='suspended')AUDIO.resume();const o=AUDIO.createOscillator(),g=AUDIO.createGain();o.type=t;o.frequency.value=f;o.connect(g);g.connect(AUDIO.destination);o.start();g.gain.exponentialRampToValueAtTime(0.001,AUDIO.currentTime+d);o.stop(AUDIO.currentTime+d);}
+    
+    function playTone(f,t,d) {
+        if(AUDIO.state==='suspended')AUDIO.resume();
+        const o=AUDIO.createOscillator(),g=AUDIO.createGain();
+        o.type=t; o.frequency.value=f;
+        o.connect(g); g.connect(AUDIO.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.001,AUDIO.currentTime+d);
+        o.stop(AUDIO.currentTime+d);
+    }
+    
+    function playFanfare() {
+        // Simple C major triad arpeggio
+        setTimeout(()=>playTone(523.25, 'triangle', 0.2), 0);
+        setTimeout(()=>playTone(659.25, 'triangle', 0.2), 150);
+        setTimeout(()=>playTone(783.99, 'triangle', 0.4), 300);
+        setTimeout(()=>playTone(1046.50, 'square', 0.8), 450);
+    }
 
     let state = {
         role: 'none', gid: new URLSearchParams(location.search).get('gid'), pid: 'p_'+Math.random().toString(36).substr(2,6),
@@ -189,57 +219,39 @@
         q: null, input: '', lastBeep: -1
     };
 
-    // --- VIEW MANAGEMENT ---
     const views = ['view-menu','view-topic-select','view-host-lobby','view-host-game','view-join','view-avatar-select','view-student-wait','view-game','view-podium','view-rankings'];
     function show(id) { views.forEach(v=>document.getElementById(v).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); if(id.includes('host')||id.includes('flex'))document.getElementById(id).classList.add('flex'); if(id==='view-game')resize(); }
     window.onload=()=>state.gid?show('view-join'):show('view-menu');
 
-    // --- HOST FUNCTIONS ---
-    function setupHost() { 
-        if(!db)return; state.role='host'; AUDIO.resume();
-        show('view-topic-select');
-    }
-
+    // --- HOST ---
+    function setupHost() { if(!db)return; state.role='host'; AUDIO.resume(); show('view-topic-select'); }
     function selectTopic(topic) {
         state.settings.topic = topic;
         const ref = db.ref('games').push();
         state.gid = ref.key;
         ref.set({ status: 'lobby', settings: state.settings });
-        
         show('view-host-lobby');
         document.getElementById('lobby-topic-display').innerText = "TOPIC: " + topic.toUpperCase().replace('_',' ');
-        
         new QRCode(document.getElementById("qrcode"), { text: `${location.origin}${location.pathname}?gid=${state.gid}`, width:128, height:128 });
         
-        // FIX: Improved Lobby Sync Logic
         db.ref(`games/${state.gid}/players`).on('value', snap => {
-            const grid=document.getElementById('player-grid');
-            grid.innerHTML=''; // Clear first
+            const grid=document.getElementById('player-grid'); grid.innerHTML=''; 
             let count=0;
             snap.forEach(c => {
                 count++;
                 grid.innerHTML += `<div class="bg-slate-800 px-3 py-2 rounded border border-slate-600 flex gap-2 items-center animate-[pop_0.3s]"><span class="text-2xl">${c.val().avatar}</span><span class="font-bold">${c.val().name}</span></div>`;
             });
             document.getElementById('join-count-display').innerText = `${count} PLAYERS`;
-            
             const btn = document.getElementById('btn-host-start');
             if(count>=2) { btn.disabled=false; btn.className="btn-primary mt-auto bg-gradient-to-r from-green-500 to-emerald-600 text-2xl py-4"; btn.innerText="🚀 START GAME"; }
             else { btn.disabled=true; btn.className="btn-primary mt-auto bg-slate-700 text-slate-500 opacity-50 cursor-not-allowed"; btn.innerText=`⏳ WAIT (${count}/2)`; }
         });
-        
         setMode('time');
     }
 
-    function setMode(m) {
-        state.settings.mode = m;
-        const s = document.getElementById('setting-slider'), l = document.getElementById('setting-label');
-        if(m==='score') { l.innerText="TARGET SCORE"; s.min=500; s.max=5000; s.step=100; s.value=1000; }
-        else { l.innerText="TIME LIMIT"; s.min=30; s.max=300; s.step=10; s.value=60; }
-        s.oninput();
-    }
+    function setMode(m) { state.settings.mode = m; document.getElementById('setting-slider').oninput(); }
     document.getElementById('setting-slider').oninput = function() {
-        const v = parseInt(this.value);
-        state.settings.target = v;
+        const v = parseInt(this.value); state.settings.target = v;
         document.getElementById('setting-value').innerText = state.settings.mode==='score' ? v+" PTS" : v+" SEC";
         if(state.gid) db.ref(`games/${state.gid}/settings`).update(state.settings);
     };
@@ -250,23 +262,19 @@
         db.ref(`games/${state.gid}`).update({ status: 'playing', startTime: Date.now(), endTime: end });
         show('view-host-game');
         
-        // Host Game Loop
         let loop = setInterval(() => {
             const now = Date.now();
             if(state.settings.mode==='time') {
                 const left = Math.ceil((end - now)/1000);
-                
-                // FIX: Countdown Sound Logic
-                if(left <= 10 && left > 0 && left !== state.lastBeep) {
+                // AUDIO: Start beeping at 5 seconds
+                if(left <= 5 && left > 0 && left !== state.lastBeep) {
                     state.lastBeep = left;
-                    playTone(800 + (10-left)*100, 'triangle', 0.15); // Pitch rises
+                    playTone(600 + (5-left)*200, 'sawtooth', 0.1); 
                 }
-
                 if(now >= end) { clearInterval(loop); finishGame(); }
             }
         }, 500);
 
-        // Host UI Timer
         let uiLoop = setInterval(() => {
             const el = document.getElementById('host-timer-display');
             if(state.settings.mode==='time') {
@@ -276,19 +284,19 @@
             } else { el.innerText = "RACE"; }
         }, 200);
 
+        // FIX: Use Player ID (key) as unique identifier
         db.ref(`games/${state.gid}/players`).on('value', snap => {
-            const players=[]; snap.forEach(c=>players.push(c.val()));
+            const players=[]; 
+            snap.forEach(c => players.push({ ...c.val(), pid: c.key })); // Store PID!
             players.sort((a,b)=>(b.score||0)-(a.score||0));
             
-            if(state.settings.mode==='score' && players[0]?.score >= state.settings.target) { clearInterval(loop); finishGame(); }
-
             const con = document.getElementById('lanes-container');
             const max = state.settings.mode==='score' ? state.settings.target : Math.max(state.settings.target*10, (players[0]?.score||0)*1.2);
             
             players.forEach((p,i) => {
-                let lane = document.getElementById('lane-'+p.name);
+                let lane = document.getElementById('lane-'+p.pid); // Use PID for ID
                 if(!lane) {
-                    lane = document.createElement('div'); lane.id='lane-'+p.name;
+                    lane = document.createElement('div'); lane.id='lane-'+p.pid;
                     lane.className = 'lane-item h-12 bg-slate-800/80 rounded flex items-center px-2 border border-slate-700 shadow mx-2 mb-2';
                     lane.innerHTML = `<div class="w-8 text-2xl">${p.avatar}</div><div class="w-20 truncate font-bold text-sm">${p.name}</div><div class="flex-1 h-3 bg-slate-900 rounded-full mx-2"><div class="progress-bar h-full bg-cyan-500" style="width:0%"></div></div><div class="w-12 text-right font-mono font-bold text-cyan-400 p-score">0</div>`;
                     con.appendChild(lane);
@@ -303,29 +311,28 @@
     function finishGame() {
         db.ref(`games/${state.gid}`).update({ status: 'finished' });
         document.getElementById('host-status-msg').style.opacity=1;
-        playTone(300, 'sawtooth', 1.0); // End buzzer
+        playTone(300, 'sawtooth', 1.0);
         setTimeout(() => {
             db.ref(`games/${state.gid}/players`).once('value', s => {
                 const arr=[]; s.forEach(c=>arr.push(c.val()));
                 arr.sort((a,b)=>b.score-a.score);
+                // Important: Pass plain array for ranking
                 db.ref(`games/${state.gid}`).update({ status: 'results', finalStandings: arr });
             });
         }, 2000);
     }
 
-    // --- CLIENT FUNCTIONS ---
+    // --- CLIENT ---
     function goToAvatarSelect() {
         if(!document.getElementById('player-name').value) return;
         state.name = document.getElementById('player-name').value;
-        AUDIO.resume(); // Ensure audio context ready
-        show('view-avatar-select');
+        AUDIO.resume(); show('view-avatar-select');
         const grid = document.getElementById('avatar-grid'); grid.innerHTML='';
-        AVATARS.forEach((a,i) => {
+        AVATARS.forEach(a => {
             const b=document.createElement('div'); b.className='avatar-btn'; b.innerText=a;
             b.onclick=()=> { 
                 document.querySelectorAll('.avatar-btn').forEach(x=>x.classList.remove('selected')); 
-                b.classList.add('selected'); 
-                state.av=a; 
+                b.classList.add('selected'); state.av=a; 
                 document.getElementById('btn-join-confirm').disabled=false;
                 playTone(600, 'sine', 0.1); 
             };
@@ -334,28 +341,23 @@
     }
 
     function confirmJoin() {
+        // Use state.pid (random ID) to ensure uniqueness
         db.ref(`games/${state.gid}/players/${state.pid}`).set({ name: state.name, avatar: state.av, score: 0 });
         show('view-student-wait');
         document.getElementById('my-final-avatar').innerText = state.av;
         document.getElementById('my-final-name').innerText = state.name;
 
         db.ref(`games/${state.gid}`).on('value', snap => {
-            const g = snap.val();
-            if(!g) return;
+            const g = snap.val(); if(!g) return;
             state.settings = g.settings;
             document.getElementById('client-topic-wait').innerText = "Topic: " + g.settings.topic.toUpperCase();
 
             if(g.status === 'playing') {
                 if(!state.active) {
-                    state.active = true;
-                    show('view-game');
-                    setupKeypad(state.settings.topic);
-                    generateQuestion();
-                    startClientTimer(g.endTime);
+                    state.active = true; show('view-game'); setupKeypad(state.settings.topic); generateQuestion(); startClientTimer(g.endTime);
                 }
             } else if(g.status === 'finished') {
-                state.active = false;
-                document.getElementById('game-freeze-overlay').classList.remove('hidden');
+                state.active = false; document.getElementById('game-freeze-overlay').classList.remove('hidden');
             } else if(g.status === 'results') {
                 showResults(g.finalStandings);
             }
@@ -367,32 +369,24 @@
         let tLoop = setInterval(() => {
             if(!end) { el.innerText="RACE"; return; }
             let left = Math.ceil((end-Date.now())/1000);
-            
-            // Client side countdown audio sync
-            if(left <= 10 && left > 0 && left !== state.lastBeep) {
+            if(left <= 5 && left > 0 && left !== state.lastBeep) {
                 state.lastBeep = left;
-                playTone(800 + (10-left)*100, 'triangle', 0.1); 
+                playTone(600 + (5-left)*200, 'sawtooth', 0.1); // Sync audio on client too
             }
-
             if(left<=0) { el.innerText="00:00"; clearInterval(tLoop); }
             else el.innerText = `${Math.floor(left/60)}:${(left%60).toString().padStart(2,'0')}`;
         }, 200);
     }
 
-    // --- MATH ENGINE V21 ---
-    const cvs = document.getElementById('gameCanvas');
-    const ctx = cvs.getContext('2d');
-    function resize() { const p=document.getElementById('canvas-container'); cvs.width=p.clientWidth; cvs.height=p.clientHeight; if(state.q) draw(); }
-    window.onresize=resize;
+    // --- MATH ---
+    const cvs = document.getElementById('gameCanvas'), ctx = cvs.getContext('2d');
+    window.onresize=()=> { const p=document.getElementById('canvas-container'); cvs.width=p.clientWidth; cvs.height=p.clientHeight; if(state.q) draw(); };
 
     function setupKeypad(topic) {
         const grid = document.getElementById('keypad-grid');
         const needsMinus = ['equation', 'directed', 'coord'].includes(topic);
         grid.innerHTML = '';
-        [7,8,9,4,5,6,1,2,3].forEach(n => {
-            grid.innerHTML += `<button class="key-btn bg-slate-800 text-cyan-100 rounded text-2xl font-bold active:bg-cyan-700 shadow" onclick="input('${n}')">${n}</button>`;
-        });
-        
+        [7,8,9,4,5,6,1,2,3].forEach(n => grid.innerHTML += `<button class="key-btn bg-slate-800 text-cyan-100 rounded text-2xl font-bold active:bg-cyan-700 shadow" onclick="input('${n}')">${n}</button>`);
         if(needsMinus) {
             grid.innerHTML += `<button class="key-btn bg-slate-700 text-yellow-400 rounded text-2xl font-bold shadow" onclick="input('-')">-</button>`;
             grid.innerHTML += `<button class="key-btn bg-slate-800 text-cyan-100 rounded text-2xl font-bold shadow" onclick="input('0')">0</button>`;
@@ -407,145 +401,116 @@
 
     function generateQuestion() {
         const r = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
-        const topic = state.settings.topic;
-        const diff = state.score > 500 ? 'hard' : 'easy';
-        let q = { type: topic, ans: 0 };
-        let hint = "";
+        const topic = state.settings.topic, diff = state.score > 500 ? 'hard' : 'easy';
+        let q = { type: topic, ans: 0 }; let hint = "";
 
         if(topic === 'area') {
             const shapes = diff==='easy'?['rect','para']:['tri','trap','comp'];
-            const shape = shapes[r(0,shapes.length-1)];
-            q.shape = shape;
+            const shape = shapes[r(0,shapes.length-1)]; q.shape = shape;
             if(shape==='rect') { q.w=r(5,12); q.h=r(4,9); q.ans=q.w*q.h; hint="Area = W × H"; }
             else if(shape==='para') { q.b=r(5,12); q.h=r(4,9); q.ans=q.b*q.h; hint="Area = B × H"; }
             else if(shape==='tri') { q.b=r(6,14); q.h=r(4,10); if(q.b%2)q.b++; q.ans=(q.b*q.h)/2; hint="Area = B × H ÷ 2"; }
             else if(shape==='trap') { q.t=r(4,8); q.b=q.t+r(2,6); q.h=r(4,8); if((q.t+q.b)*q.h%2)q.h++; q.ans=((q.t+q.b)*q.h)/2; hint="Area = (Top+Btm)×H÷2"; }
             else { q.w=r(8,12); q.h=r(8,12); q.cw=r(3,5); q.ch=r(3,5); q.ans=(q.w*q.h)-(q.cw*q.ch); hint="Rect - Cut"; }
-        }
-        else if(topic === 'volume') {
-            q.shape = 'cuboid';
-            if(diff==='easy') { q.l=r(3,8); q.w=r(2,6); q.h=r(2,6); q.ans = q.l*q.w*q.h; hint = "Vol = L × W × H"; } 
-            else { q.shape = 'prism'; q.area = r(12,30); q.h=r(4,10); q.ans = q.area * q.h; hint = "Vol = Base Area × H"; }
-        }
-        else if(topic === 'equation') {
-            const x = r(-9,9); const a = r(2,6) * (Math.random()<.5?1:-1); const b = r(-10,10); const c = (a*x) + b;
+        } else if(topic === 'volume') {
+            if(diff==='easy') { q.shape='cuboid'; q.l=r(3,8); q.w=r(2,6); q.h=r(2,6); q.ans=q.l*q.w*q.h; hint="Vol = L × W × H"; } 
+            else { q.shape='prism'; q.area=r(12,30); q.h=r(4,10); q.ans=q.area*q.h; hint="Vol = Base Area × H"; }
+        } else if(topic === 'equation') {
+            const x=r(-9,9); const a=r(2,6)*(Math.random()<.5?1:-1); const b=r(-10,10); const c=(a*x)+b;
             q.txt = `${a}x ${b>=0?'+ '+b:'- '+Math.abs(b)} = ${c}`; q.ans = x; hint = "Solve for x";
-        }
-        else if(topic === 'percent') {
-            if(diff==='easy') { const p = r(1,9)*10; const y = r(2,20)*5; q.txt = `${p}% of ${y} = ?`; q.ans = (p/100)*y; } 
-            else { const p = r(1,5)*10; const y = r(5,15)*10; const isInc = Math.random()>.5; q.txt = `${y} ${isInc?'increased':'decreased'}\nby ${p}%`; q.ans = isInc ? y*(1+p/100) : y*(1-p/100); }
+        } else if(topic === 'percent') {
+            if(diff==='easy') { const p=r(1,9)*10; const y=r(2,20)*5; q.txt=`${p}% of ${y} = ?`; q.ans=(p/100)*y; } 
+            else { const p=r(1,5)*10; const y=r(5,15)*10; const isInc=Math.random()>.5; q.txt=`${y} ${isInc?'increased':'decreased'}\nby ${p}%`; q.ans=isInc?y*(1+p/100):y*(1-p/100); }
             hint = "Calculate Value";
+        } else if(topic === 'directed') {
+            const n1=r(-12,12), n2=r(-12,12), ops=['+','-','×'], op=ops[r(0,2)];
+            if(op==='+')q.ans=n1+n2; else if(op==='-')q.ans=n1-n2; else q.ans=n1*n2;
+            const fmt=n=>n<0?`(${n})`:n; q.txt=`${fmt(n1)} ${op} ${fmt(n2)}`; hint="Watch signs";
+        } else if(topic === 'angles') {
+            q.subType=diff==='easy'?(Math.random()>.5?'vert':'supp'):'comp'; 
+            if(q.subType==='vert') { q.ans=r(30,150); q.angleKnown=q.ans; hint="Vertically Opposite"; } 
+            else if(q.subType==='supp') { q.ans=r(30,150); q.angleKnown=180-q.ans; hint="Sum = 180°"; } 
+            else { q.ans=r(20,70); q.angleKnown=90-q.ans; hint="Sum = 90°"; }
+        } else if(topic === 'coord') {
+            q.x=r(-5,5); q.y=r(-5,5); if(q.x===0)q.x++; if(q.y===0)q.y--; q.ask=Math.random()>0.5?'x':'y'; q.ans=q.ask==='x'?q.x:q.y; hint=`Find ${q.ask.toUpperCase()}-coordinate`;
         }
-        else if(topic === 'directed') {
-            const n1 = r(-12, 12); const n2 = r(-12, 12); const ops = ['+','-','×']; const op = ops[r(0,2)];
-            if(op==='+') q.ans = n1 + n2; else if(op==='-') q.ans = n1 - n2; else if(op==='×') q.ans = n1 * n2;
-            const fmt = n => n<0 ? `(${n})` : n; q.txt = `${fmt(n1)} ${op} ${fmt(n2)}`; hint = "Watch the signs";
-        }
-        else if(topic === 'angles') {
-            q.subType = diff==='easy' ? (Math.random()>.5?'vert':'supp') : 'comp'; 
-            if(q.subType === 'vert') { q.ans = r(30, 150); q.angleKnown = q.ans; hint = "Vertically Opposite"; } 
-            else if (q.subType === 'supp') { q.ans = r(30, 150); q.angleKnown = 180 - q.ans; hint = "Straight Line = 180°"; } 
-            else { q.ans = r(20, 70); q.angleKnown = 90 - q.ans; hint = "Right Angle = 90°"; }
-        }
-        else if(topic === 'coord') {
-            q.x = r(-5, 5); q.y = r(-5, 5); if(q.x===0) q.x++; if(q.y===0) q.y--; 
-            q.ask = Math.random() > 0.5 ? 'x' : 'y'; q.ans = q.ask === 'x' ? q.x : q.y; hint = `Find ${q.ask.toUpperCase()}-coordinate`;
-        }
-
-        state.q = q; state.input = '';
-        document.getElementById('input-display').innerText = '_'; document.getElementById('hint-display').innerText = hint;
-        draw();
+        state.q = q; state.input = ''; document.getElementById('input-display').innerText='_'; document.getElementById('hint-display').innerText=hint;
+        const p=document.getElementById('canvas-container'); cvs.width=p.clientWidth; cvs.height=p.clientHeight; draw();
     }
 
     function draw() {
-        const w=cvs.width, h=cvs.height, cx=w/2, cy=h/2;
-        ctx.clearRect(0,0,w,h); ctx.strokeStyle='#22d3ee'; ctx.fillStyle='#fff'; ctx.lineWidth=3;
+        const w=cvs.width, h=cvs.height, cx=w/2, cy=h/2; ctx.clearRect(0,0,w,h); ctx.strokeStyle='#22d3ee'; ctx.fillStyle='#fff'; ctx.lineWidth=3;
         ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='bold 24px Roboto Mono';
-        const label = (t,x,y,c='#fbbf24') => { ctx.fillStyle='#0f172a'; ctx.fillRect(x-12,y-12,24,24); ctx.fillStyle=c; ctx.fillText(t,x,y); };
-
-        if(state.q.type === 'area') {
+        const label=(t,x,y,c='#fbbf24')=>{ctx.fillStyle='#0f172a';ctx.fillRect(x-12,y-12,24,24);ctx.fillStyle=c;ctx.fillText(t,x,y);};
+        if(state.q.type==='area') {
             const s=Math.min(w,h)/20;
-            if(state.q.shape==='rect') { ctx.strokeRect(cx-state.q.w*s/2, cy-state.q.h*s/2, state.q.w*s, state.q.h*s); label(state.q.w,cx,cy-state.q.h*s/2-20); label(state.q.h,cx+state.q.w*s/2+20,cy); }
-            else if(state.q.shape==='tri') { ctx.beginPath(); ctx.moveTo(cx,cy-state.q.h*s/2); ctx.lineTo(cx-state.q.b*s/2,cy+state.q.h*s/2); ctx.lineTo(cx+state.q.b*s/2,cy+state.q.h*s/2); ctx.closePath(); ctx.stroke(); label(state.q.b,cx,cy+state.q.h*s/2+20); label(state.q.h,cx+10,cy); }
-            else if(state.q.shape==='trap') { 
-                const top=state.q.t*s, btm=state.q.b*s, hh=state.q.h*s; 
-                ctx.beginPath(); ctx.moveTo(cx-top/2, cy-hh/2); ctx.lineTo(cx+top/2, cy-hh/2); ctx.lineTo(cx+btm/2, cy+hh/2); ctx.lineTo(cx-btm/2, cy+hh/2); ctx.closePath(); ctx.stroke();
-                label(state.q.t, cx, cy-hh/2-20); label(state.q.b, cx, cy+hh/2+20); label(state.q.h, cx-btm/2-20, cy);
-            }
-            else { 
-                ctx.strokeRect(cx-state.q.w*s/2, cy-state.q.h*s/2, state.q.w*s, state.q.h*s);
-                ctx.fillStyle='rgba(255,255,255,0.1)'; ctx.fillRect(cx+state.q.w*s/2-state.q.cw*s, cy-state.q.h*s/2, state.q.cw*s, state.q.ch*s);
-                ctx.fillStyle='#fff'; ctx.fillText("MISSING", cx+state.q.w*s/2-state.q.cw*s/2, cy-state.q.h*s/2+state.q.ch*s/2);
-            }
-        }
-        else if(state.q.type === 'volume') {
-             const dx=20, dy=20;
-             if(state.q.shape==='cuboid') {
-                ctx.strokeRect(cx-50, cy-50, 100, 100); 
-                ctx.beginPath(); ctx.moveTo(cx-50,cy-50); ctx.lineTo(cx-50+dx,cy-50-dy); ctx.lineTo(cx+50+dx,cy-50-dy); ctx.lineTo(cx+50+dx,cy+50-dy); ctx.lineTo(cx+50,cy+50); ctx.stroke();
-                ctx.moveTo(cx+50+dx,cy-50-dy); ctx.lineTo(cx+50,cy-50); ctx.stroke();
-                label(state.q.l, cx, cy+60); label(state.q.h, cx-60, cy); label(state.q.w, cx+60, cy-60);
-             } else { ctx.fillText(`Base Area = ${state.q.area}`, cx, cy-20); ctx.fillText(`Height = ${state.q.h}`, cx, cy+20); }
-        }
-        else if(state.q.type === 'equation' || state.q.type === 'percent' || state.q.type === 'directed') {
-            ctx.font='bold 32px Roboto Mono'; ctx.fillStyle = '#a5f3fc';
-            const lines = state.q.txt.split('\n');
-            lines.forEach((l,i) => ctx.fillText(l, cx, cy + (i*40) - ((lines.length-1)*20)));
-        }
-        else if(state.q.type === 'angles') {
-            const len = 100; ctx.beginPath();
-            if(state.q.subType === 'comp') { ctx.moveTo(cx-len, cy+20); ctx.lineTo(cx, cy+20); ctx.lineTo(cx, cy-len); ctx.stroke(); ctx.moveTo(cx, cy+20); ctx.lineTo(cx - Math.cos((state.q.angleKnown*Math.PI)/180)*len, cy+20 - Math.sin((state.q.angleKnown*Math.PI)/180)*len); ctx.stroke(); } 
-            else if(state.q.subType === 'supp') { ctx.moveTo(cx-len, cy); ctx.lineTo(cx+len, cy); ctx.stroke(); ctx.moveTo(cx, cy); ctx.lineTo(cx-30, cy-len); ctx.stroke(); } 
-            else { ctx.moveTo(cx-len, cy-len/2); ctx.lineTo(cx+len, cy+len/2); ctx.moveTo(cx-len, cy+len/2); ctx.lineTo(cx+len, cy-len/2); ctx.stroke(); }
-            ctx.fillText(state.q.angleKnown+'°', cx, cy-40); ctx.fillStyle='#fbbf24'; ctx.fillText('?', cx-60, cy);
-        }
-        else if(state.q.type === 'coord') {
-            ctx.strokeStyle = '#334155'; ctx.lineWidth=1; const step = 20;
-            for(let i=cx-100; i<=cx+100; i+=step) { ctx.beginPath(); ctx.moveTo(i, cy-100); ctx.lineTo(i, cy+100); ctx.stroke(); }
-            for(let i=cy-100; i<=cy+100; i+=step) { ctx.beginPath(); ctx.moveTo(cx-100, i); ctx.lineTo(cx+100, i); ctx.stroke(); }
-            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx, cy-100); ctx.lineTo(cx, cy+100); ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx-100, cy); ctx.lineTo(cx+100, cy); ctx.stroke();
-            const px = cx + (state.q.x * step); const py = cy - (state.q.y * step); 
-            ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#fff'; ctx.fillText(`(${state.q.ask==='x'?'?':state.q.x}, ${state.q.ask==='y'?'?':state.q.y})`, cx, cy+130);
+            if(state.q.shape==='rect') { ctx.strokeRect(cx-state.q.w*s/2,cy-state.q.h*s/2,state.q.w*s,state.q.h*s); label(state.q.w,cx,cy-state.q.h*s/2-20); label(state.q.h,cx+state.q.w*s/2+20,cy); }
+            else if(state.q.shape==='tri') { ctx.beginPath();ctx.moveTo(cx,cy-state.q.h*s/2);ctx.lineTo(cx-state.q.b*s/2,cy+state.q.h*s/2);ctx.lineTo(cx+state.q.b*s/2,cy+state.q.h*s/2);ctx.stroke(); label(state.q.b,cx,cy+state.q.h*s/2+20); label(state.q.h,cx+10,cy); }
+            else if(state.q.shape==='trap') { const t=state.q.t*s,b=state.q.b*s,hh=state.q.h*s; ctx.beginPath();ctx.moveTo(cx-t/2,cy-hh/2);ctx.lineTo(cx+t/2,cy-hh/2);ctx.lineTo(cx+b/2,cy+hh/2);ctx.lineTo(cx-b/2,cy+hh/2);ctx.closePath();ctx.stroke(); label(state.q.t,cx,cy-hh/2-20);label(state.q.b,cx,cy+hh/2+20);label(state.q.h,cx-b/2-20,cy); }
+            else { ctx.strokeRect(cx-state.q.w*s/2,cy-state.q.h*s/2,state.q.w*s,state.q.h*s); ctx.fillStyle='rgba(255,255,255,0.1)';ctx.fillRect(cx+state.q.w*s/2-state.q.cw*s,cy-state.q.h*s/2,state.q.cw*s,state.q.ch*s); }
+        } else if(state.q.type==='volume') {
+             if(state.q.shape==='cuboid'){ const d=20;ctx.strokeRect(cx-50,cy-50,100,100);ctx.beginPath();ctx.moveTo(cx-50,cy-50);ctx.lineTo(cx-30,cy-70);ctx.lineTo(cx+70,cy-70);ctx.lineTo(cx+70,cy+30);ctx.lineTo(cx+50,cy+50);ctx.stroke();ctx.moveTo(cx+70,cy-70);ctx.lineTo(cx+50,cy-50);ctx.stroke();label(state.q.l,cx,cy+60);label(state.q.h,cx-60,cy);label(state.q.w,cx+60,cy-60); }
+             else { ctx.fillText(`Base Area=${state.q.area}`,cx,cy-20); ctx.fillText(`Height=${state.q.h}`,cx,cy+20); }
+        } else if(state.q.type==='equation'||state.q.type==='percent'||state.q.type==='directed') {
+            ctx.font='bold 32px Roboto Mono'; ctx.fillStyle='#a5f3fc';
+            state.q.txt.split('\n').forEach((l,i)=>ctx.fillText(l,cx,cy+(i*40)-20));
+        } else if(state.q.type==='angles') {
+            const l=100; ctx.beginPath();
+            if(state.q.subType==='comp'){ctx.moveTo(cx-l,cy+20);ctx.lineTo(cx,cy+20);ctx.lineTo(cx,cy-l);ctx.stroke();ctx.moveTo(cx,cy+20);ctx.lineTo(cx-Math.cos(state.q.angleKnown*Math.PI/180)*l,cy+20-Math.sin(state.q.angleKnown*Math.PI/180)*l);ctx.stroke();}
+            else if(state.q.subType==='supp'){ctx.moveTo(cx-l,cy);ctx.lineTo(cx+l,cy);ctx.stroke();ctx.moveTo(cx,cy);ctx.lineTo(cx-30,cy-l);ctx.stroke();}
+            else {ctx.moveTo(cx-l,cy-l/2);ctx.lineTo(cx+l,cy+l/2);ctx.moveTo(cx-l,cy+l/2);ctx.lineTo(cx+l,cy-l/2);ctx.stroke();}
+            ctx.fillText(state.q.angleKnown+'°',cx,cy-40); ctx.fillStyle='#fbbf24'; ctx.fillText('?',cx-50,cy);
+        } else if(state.q.type==='coord') {
+            ctx.strokeStyle='#334155';ctx.lineWidth=1; for(let i=-5;i<=5;i++) { ctx.beginPath();ctx.moveTo(cx+i*20,cy-100);ctx.lineTo(cx+i*20,cy+100);ctx.stroke(); ctx.beginPath();ctx.moveTo(cx-100,cy+i*20);ctx.lineTo(cx+100,cy+i*20);ctx.stroke(); }
+            ctx.strokeStyle='#94a3b8';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx,cy-100);ctx.lineTo(cx,cy+100);ctx.stroke();ctx.beginPath();ctx.moveTo(cx-100,cy);ctx.lineTo(cx+100,cy);ctx.stroke();
+            ctx.fillStyle='#ef4444';ctx.beginPath();ctx.arc(cx+state.q.x*20,cy-state.q.y*20,6,0,Math.PI*2);ctx.fill();
+            ctx.fillStyle='#fff';ctx.fillText(`(${state.q.ask==='x'?'?':state.q.x}, ${state.q.ask==='y'?'?':state.q.y})`,cx,cy+130);
         }
     }
 
-    function input(k) {
-        if(!state.active) return;
-        if(k==='DEL') state.input = state.input.slice(0,-1); else if(state.input.length < 6) state.input += k;
-        document.getElementById('input-display').innerText = state.input || '_'; playTone(500, 'sine', 0.05);
-    }
+    function input(k) { if(!state.active)return; if(k==='DEL')state.input=state.input.slice(0,-1); else if(state.input.length<6)state.input+=k; document.getElementById('input-display').innerText=state.input||'_'; playTone(500,'sine',0.05); }
     function checkAnswer() {
-        if(!state.active || !state.input) return;
-        const correct = Math.abs(parseFloat(state.input) - state.q.ans) < 0.01;
-        const fb = document.getElementById('feedback-msg');
-        if(correct) {
-            state.score += 100; playTone(800, 'triangle', 0.1);
-            fb.innerText="GOOD!"; fb.style.color='#4ade80'; fb.style.opacity=1;
-            db.ref(`games/${state.gid}/players/${state.pid}`).update({score: state.score});
-            setTimeout(()=>{ fb.style.opacity=0; generateQuestion(); }, 400);
-        } else {
-            playTone(150, 'sawtooth', 0.3); fb.innerText="MISS"; fb.style.color='#ef4444'; fb.style.opacity=1;
-            setTimeout(()=>{ fb.style.opacity=0; state.input=''; document.getElementById('input-display').innerText='_'; }, 500);
-        }
-        document.getElementById('client-score').innerText = state.score + " PTS";
+        if(!state.active||!state.input)return; const ok=Math.abs(parseFloat(state.input)-state.q.ans)<0.01;
+        const fb=document.getElementById('feedback-msg');
+        if(ok){state.score+=100; playTone(800,'triangle',0.1); fb.innerText="GOOD!";fb.style.color='#4ade80';fb.style.opacity=1; db.ref(`games/${state.gid}/players/${state.pid}`).update({score:state.score}); setTimeout(()=>{fb.style.opacity=0;generateQuestion()},400);}
+        else{playTone(150,'sawtooth',0.3); fb.innerText="MISS";fb.style.color='#ef4444';fb.style.opacity=1; setTimeout(()=>{fb.style.opacity=0;state.input='';document.getElementById('input-display').innerText='_'},500);}
+        document.getElementById('client-score').innerText=state.score+" PTS";
     }
+
     function showResults(list) {
+        if(!list) return; // Safety check
         show('view-podium');
-        const setPod = (id, p) => {
+        
+        const setPod = (id, p, delay) => {
             if(!p) return;
-            document.getElementById(id).style.opacity=1; document.getElementById(id).classList.add('podium-enter');
-            document.getElementById(id.replace('podium','p')+'-name').innerText = p.name;
-            document.getElementById(id.replace('podium','p')+'-avatar').innerText = p.avatar;
-            document.getElementById(id.replace('podium','p')+'-score').innerText = p.score;
+            setTimeout(() => {
+                document.getElementById(id).style.opacity = '1';
+                document.getElementById(id).style.transform = 'translateY(0)';
+                document.getElementById(id.replace('podium','p')+'-name').innerText = p.name;
+                document.getElementById(id.replace('podium','p')+'-avatar').innerText = p.avatar;
+                document.getElementById(id.replace('podium','p')+'-score').innerText = p.score;
+                
+                // AUDIO: Play sound based on rank
+                if(id === 'podium-1') playFanfare();
+                else playTone(200, 'square', 0.2); 
+
+            }, delay);
         };
-        setPod('podium-1', list[0]); setTimeout(()=>setPod('podium-2', list[1]), 500); setTimeout(()=>setPod('podium-3', list[2]), 1000);
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+
+        // Sequence: 3rd -> 2nd -> 1st -> Rankings
+        setPod('podium-3', list[2], 500);
+        setPod('podium-2', list[1], 1500);
+        setPod('podium-1', list[0], 2500);
+        
+        setTimeout(() => confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } }), 2600);
+
         setTimeout(() => {
             show('view-rankings');
             const b = document.getElementById('ranking-list-body'); b.innerHTML='';
-            list.forEach((p,i) => { b.innerHTML += `<tr class="border-b border-slate-700 text-slate-300"><td class="p-3">${i+1}</td><td class="p-3 flex gap-2"><span class="text-xl">${p.avatar}</span><b>${p.name}</b></td><td class="p-3 text-right font-mono">${p.score}</td></tr>`; });
-        }, 5000);
+            list.forEach((p,i) => {
+                b.innerHTML += `<tr class="border-b border-slate-700 text-slate-300 animate-[pop_0.5s]"><td class="p-3">${i+1}</td><td class="p-3 flex gap-2"><span class="text-xl">${p.avatar}</span><b>${p.name}</b></td><td class="p-3 text-right font-mono">${p.score}</td></tr>`;
+            });
+        }, 6000); // 6 Seconds after podium start
     }
 </script>
 </body>
