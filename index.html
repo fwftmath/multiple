@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Math Arena V26: Responsive</title>
+    <title>Math Arena V27: Integer Only</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -19,22 +19,18 @@
         .font-display { font-family: 'Black Ops One', cursive; }
         .neon-text { text-shadow: 0 0 10px #22d3ee; }
         
-        /* 按鈕響應式調整：手機上文字稍微小一點，iPad 上大一點 */
+        /* UI Components */
         .btn-primary { @apply bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 md:py-4 px-8 rounded-xl shadow-[0_0_15px_rgba(8,145,178,0.5)] transform transition active:scale-95 w-full mb-4 text-xl md:text-2xl; }
         .btn-topic { @apply bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 text-cyan-400 font-bold py-4 md:py-6 rounded-2xl shadow-lg transition-all active:scale-95 flex flex-col items-center justify-center gap-2; }
-        
-        /* 列表項目：確保寬度適應 */
         .lane-item { @apply w-full bg-slate-800 rounded-xl flex items-center px-3 py-2 md:px-4 md:py-3 border border-slate-600 shadow-md mb-2 transition-all; }
         
         #canvas-container { position: relative; width: 100%; height: 100%; flex: 1; overflow: hidden; background-color: #1e293b; border-radius: 0 0 1rem 1rem; }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         
-        /* 自定義滾動條樣式，讓 iPad 看起來更現代 */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1e293b; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
-
+        
         @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
@@ -42,7 +38,7 @@
 
     <div id="view-menu" class="text-center p-8 w-full max-w-2xl hidden flex-col items-center z-50">
         <h1 class="text-6xl md:text-8xl font-display italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-4 neon-text">MATH<br>ARENA</h1>
-        <div class="text-xl md:text-3xl text-slate-400 font-display mb-8 md:mb-12">HK S1 V26</div>
+        <div class="text-xl md:text-3xl text-slate-400 font-display mb-8 md:mb-12">HK S1 V27 (INT)</div>
         <div id="db-status" class="text-lg text-red-500 font-bold mb-8">🔴 Connecting...</div>
         <button onclick="setupHost()" class="btn-primary border-l-8 border-cyan-300">📡 HOST GAME</button>
     </div>
@@ -67,14 +63,12 @@
         </div>
         
         <div class="flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-8 flex-1 overflow-hidden">
-            
             <div class="bg-slate-900 p-4 md:p-8 rounded-2xl border-2 border-slate-700 flex flex-col items-center shadow-xl overflow-hidden h-full">
                 <div class="bg-white p-2 md:p-4 rounded-xl mb-4 shadow-inner shrink-0">
                     <div id="qrcode" class="scale-90 md:scale-100 origin-center"></div>
                 </div>
                 <div class="text-2xl md:text-3xl font-bold text-white mb-4 shrink-0" id="join-count-display">0 PLAYERS</div>
-                <div id="player-grid" class="flex-1 w-full overflow-y-auto bg-slate-950/50 p-2 md:p-4 rounded-xl flex flex-wrap content-start gap-2 md:gap-3">
-                    </div>
+                <div id="player-grid" class="flex-1 w-full overflow-y-auto bg-slate-950/50 p-2 md:p-4 rounded-xl flex flex-wrap content-start gap-2 md:gap-3"></div>
             </div>
 
             <div class="bg-slate-900 p-4 md:p-8 rounded-2xl border-2 border-slate-700 flex flex-col shadow-xl h-auto md:h-full justify-center shrink-0">
@@ -101,8 +95,7 @@
             <div class="text-5xl md:text-7xl font-mono font-bold text-cyan-400 neon-text" id="host-timer-display">00:00</div>
         </div>
         
-        <div class="flex-1 w-full overflow-y-auto px-2 md:px-4 pb-32 space-y-2 bg-slate-900/30 rounded-xl border border-slate-800" id="lanes-container" style="-webkit-overflow-scrolling: touch;">
-            </div>
+        <div class="flex-1 w-full overflow-y-auto px-2 md:px-4 pb-32 space-y-2 bg-slate-900/30 rounded-xl border border-slate-800" id="lanes-container" style="-webkit-overflow-scrolling: touch;"></div>
         
         <div id="host-status-msg" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center pointer-events-none opacity-0 transition-opacity duration-500 z-50">
             <span class="bg-black/90 text-yellow-400 px-8 py-4 md:px-12 md:py-6 rounded-full text-3xl md:text-5xl font-bold border-4 border-yellow-500 shadow-2xl backdrop-blur-sm">🛑 TIME UP</span>
@@ -223,8 +216,8 @@
         [523.25, 659.25, 783.99, 1046.50].forEach((f,i) => {
             const o=AUDIO.createOscillator(),g=AUDIO.createGain();
             o.type=i===3?'square':'triangle'; o.frequency.value=f;
-            o.connect(g); g.connect(AUDIO.destination);
             o.start(now + i*0.15); g.gain.exponentialRampToValueAtTime(0.001, now + i*0.15 + (i===3?1.5:0.3));
+            o.connect(g); g.connect(AUDIO.destination);
             o.stop(now + i*0.15 + (i===3?1.5:0.3));
         });
     }
@@ -301,7 +294,6 @@
             const max = state.settings.mode==='score' ? state.settings.target : Math.max(state.settings.target*10, (arr[0]?.score||0)*1.2, 1);
             if(state.settings.mode==='score' && arr[0]?.score >= state.settings.target) { clearInterval(timerLoop); finishGame(); }
 
-            // 使用 V18/V25 的字串拼接，但調整了 CSS class 以適應響應式
             const html = arr.map(p => {
                 const width = Math.min(100, (p.score/max)*100);
                 return `
@@ -401,17 +393,21 @@
     }
     window.onresize=resize;
 
+    // 鍵盤設置：移除了小數點，只針對有負數的題目提供負號
     function setupKeypad(topic) {
         const grid = document.getElementById('keypad-grid'); grid.innerHTML = '';
         const btnClass = "active:scale-95 transition-transform shadow-lg text-2xl md:text-3xl font-bold rounded-xl border-b-4 border-slate-950 active:border-b-0 active:translate-y-1 bg-slate-800 text-cyan-100 active:bg-cyan-700";
         const delClass = "active:scale-95 transition-transform shadow-lg text-2xl md:text-3xl font-bold rounded-xl border-b-4 border-slate-950 active:border-b-0 active:translate-y-1 bg-rose-900/40 text-rose-500";
         
         [7,8,9,4,5,6,1,2,3].forEach(n => grid.innerHTML += `<button class="${btnClass}" onclick="input('${n}')">${n}</button>`);
+        
+        // 只有方程、有向數、坐標需要負號，其他只要數字和DEL
         if(['equation','directed','coord'].includes(topic)) {
             grid.innerHTML += `<button class="active:scale-95 transition-transform shadow-lg text-2xl md:text-3xl font-bold rounded-xl border-b-4 border-slate-950 active:border-b-0 active:translate-y-1 bg-slate-700 text-yellow-400" onclick="input('-')">-</button>`;
             grid.innerHTML += `<button class="${btnClass}" onclick="input('0')">0</button>`;
             grid.innerHTML += `<button class="${delClass}" onclick="input('DEL')">DEL</button>`;
         } else {
+             // 補一個空位保持佈局
              grid.innerHTML += `<button class="${delClass}" onclick="input('DEL')">DEL</button>`;
              grid.innerHTML += `<button class="${btnClass}" onclick="input('0')">0</button>`;
              grid.innerHTML += `<div class="bg-transparent"></div>`;
@@ -419,6 +415,7 @@
         grid.innerHTML += `<button class="col-span-3 bg-gradient-to-b from-emerald-600 to-emerald-800 text-white rounded-xl font-bold text-3xl py-3 active:translate-y-1 shadow-lg mt-1" onclick="checkAnswer()">GO</button>`;
     }
 
+    // 核心數學邏輯修正：所有答案強制為整數
     function generateQuestion() {
         const r = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
         const topic = state.settings.topic;
@@ -429,8 +426,18 @@
             q.shape = shapes[r(0,shapes.length-1)];
             if(q.shape==='rect') { q.w=r(5,12); q.h=r(4,9); q.ans=q.w*q.h; hint="Area = W × H"; }
             else if(q.shape==='para') { q.b=r(5,12); q.h=r(4,9); q.ans=q.b*q.h; hint="Area = B × H"; }
-            else if(q.shape==='tri') { q.b=r(6,14); q.h=r(4,10); if(q.b%2)q.b++; q.ans=(q.b*q.h)/2; hint="Area = B × H ÷ 2"; }
-            else if(q.shape==='trap') { q.t=r(4,8); q.b=q.t+r(2,6); q.h=r(4,8); if((q.t+q.b)*q.h%2)q.h++; q.ans=((q.t+q.b)*q.h)/2; hint="Area = (Top+Btm)×H÷2"; }
+            else if(q.shape==='tri') { 
+                q.b=r(6,14); q.h=r(4,10); 
+                // Fix: 確保底或高是雙數
+                if(q.b%2!==0 && q.h%2!==0) q.b++; 
+                q.ans=(q.b*q.h)/2; hint="Area = B × H ÷ 2"; 
+            }
+            else if(q.shape==='trap') { 
+                q.t=r(4,8); q.b=q.t+r(2,6); q.h=r(4,8); 
+                // Fix: 確保 (上+下)*高 是雙數 (最簡單是讓高變雙數)
+                if(q.h%2!==0) q.h++;
+                q.ans=((q.t+q.b)*q.h)/2; hint="Area = (Top+Btm)×H÷2"; 
+            }
             else { q.w=r(8,12); q.h=r(8,12); q.cw=r(3,5); q.ch=r(3,5); q.ans=(q.w*q.h)-(q.cw*q.ch); hint="Big - Small"; }
         } else if(topic === 'volume') {
              q.shape='cuboid'; q.l=r(3,8); q.w=r(2,6); q.h=r(2,6); q.ans=q.l*q.w*q.h; hint="Vol = L × W × H";
@@ -438,7 +445,9 @@
             const x=r(-9,9); const a=r(2,6)*(Math.random()<.5?1:-1); const b=r(-10,10); const c=(a*x)+b;
             q.txt = `${a}x ${b>=0?'+ '+b:'- '+Math.abs(b)} = ${c}`; q.ans = x; hint = "Solve for x";
         } else if(topic === 'percent') {
-            const p=r(1,9)*10; const y=r(2,20)*5; q.txt=`${p}% of ${y} = ?`; q.ans=(p/100)*y; hint = "Calculate Value";
+            // Fix: 基數改為 10 的倍數，百分比也是 10 的倍數，保證整除
+            const p=r(1,9)*10; const y=r(1,10)*10; 
+            q.txt=`${p}% of ${y} = ?`; q.ans=(p/100)*y; hint = "Calculate Value";
         } else if(topic === 'directed') {
             const n1=r(-12,12), n2=r(-12,12), ops=['+','-','×'], op=ops[r(0,2)];
             if(op==='+')q.ans=n1+n2; else if(op==='-')q.ans=n1-n2; else q.ans=n1*n2;
@@ -500,7 +509,7 @@
 
     function input(k) { if(!state.active)return; if(k==='DEL')state.input=state.input.slice(0,-1); else if(state.input.length<6)state.input+=k; document.getElementById('input-display').innerText=state.input||'_'; playTone(500,'sine',0.05); }
     function checkAnswer() {
-        if(!state.active||!state.input)return; const ok=Math.abs(parseFloat(state.input)-state.q.ans)<0.01;
+        if(!state.active||!state.input)return; const ok=parseInt(state.input) === Math.round(state.q.ans); // Strict integer check
         const fb=document.getElementById('feedback-msg');
         if(ok){state.score+=100; playTone(800,'triangle',0.1); fb.innerText="GOOD!";fb.style.color='#4ade80';fb.style.opacity=1; db.ref(`games/${state.gid}/players/${state.pid}`).update({score:state.score}); setTimeout(()=>{fb.style.opacity=0;generateQuestion()},400);}
         else{playTone(150,'sawtooth',0.3); fb.innerText="MISS";fb.style.color='#ef4444';fb.style.opacity=1; setTimeout(()=>{fb.style.opacity=0;state.input='';document.getElementById('input-display').innerText='_'},500);}
