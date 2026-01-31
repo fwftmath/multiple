@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Math Arena V37: Orange & Sound</title>
+    <title>Math Arena V38: F1 Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -44,7 +44,7 @@
             transform: scale(1.02); z-index: 1;
         }
 
-        /* 3. Pool (Orange - NEW) */
+        /* 3. Pool (Orange) */
         .glow-btn.orange.active { 
             @apply border-orange-400 text-white bg-orange-950/90;
             box-shadow: 0 0 20px rgba(251, 146, 60, 0.4), inset 0 0 10px rgba(251, 146, 60, 0.1);
@@ -54,22 +54,18 @@
         /* Main Action Button */
         .btn-primary { @apply bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-6 rounded-lg shadow-[0_0_15px_rgba(8,145,178,0.5)] transform transition active:scale-95 w-full mb-3; }
         
-        /* === V37 AVATAR AREA (Full Height, Hidden Scrollbar) === */
+        /* === AVATAR AREA (Full Height) === */
         .avatar-grid-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
-            /* Changed from fixed max-height to flex-1 to fill screen */
             flex: 1;
             overflow-y: auto; 
             padding: 4px;
-            /* Hide Scrollbar for cleaner look */
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none;  /* IE/Edge */
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
         }
-        .avatar-grid-container::-webkit-scrollbar { 
-            display: none; /* Chrome/Safari */
-        }
+        .avatar-grid-container::-webkit-scrollbar { display: none; }
 
         .avatar-btn { 
             @apply text-6xl p-1 rounded-xl border-2 border-slate-700 transition-all cursor-pointer grayscale opacity-60 bg-slate-800 flex justify-center items-center h-24 w-24 mx-auto shadow-md; 
@@ -93,7 +89,7 @@
 <body class="h-screen flex flex-col items-center justify-center bg-[#050510]">
 
     <div id="view-menu" class="text-center space-y-6 p-4 max-w-md w-full hidden z-50">
-        <h1 class="text-5xl font-display italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2 neon-text">MATH<br>ARENA V37</h1>
+        <h1 class="text-5xl font-display italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2 neon-text">MATH<br>ARENA V38</h1>
         <div id="db-status" class="text-xs text-red-500 font-bold mb-4">🔴 Connecting...</div>
         <button onclick="setupHost()" class="btn-primary border-l-4 border-cyan-300 text-xl py-6">📡 HOST CLASS</button>
     </div>
@@ -116,9 +112,13 @@
                         <button class="glow-btn cyan" onclick="setTopic('algebra')" id="btn-topic-algebra">✖️ Algebra</button>
                         <button class="glow-btn cyan" onclick="setTopic('percent')" id="btn-topic-percent">％ Percent</button>
                         
-                        <button class="glow-btn cyan" onclick="setTopic('area')" id="btn-topic-area">🟦 Area (2D)</button>
-                        <button class="glow-btn cyan" onclick="setTopic('volume')" id="btn-topic-volume">🧊 Volume (3D)</button>
-                        <button class="glow-btn cyan" onclick="setTopic('mixed')" id="btn-topic-mixed">🎲 Mixed</button>
+                        <button class="glow-btn cyan" onclick="setTopic('area')" id="btn-topic-area">🟦 Area</button>
+                        <button class="glow-btn cyan" onclick="setTopic('volume')" id="btn-topic-volume">🧊 Volume</button>
+                        
+                        <button class="glow-btn cyan" onclick="setTopic('angles')" id="btn-topic-angles">📐 Angles</button>
+                        <button class="glow-btn cyan" onclick="setTopic('factors')" id="btn-topic-factors">➗ Factors</button>
+                        
+                        <button class="glow-btn cyan col-span-2" onclick="setTopic('mixed')" id="btn-topic-mixed">🎲 F1 Mixed</button>
                     </div>
                 </div>
 
@@ -170,8 +170,7 @@
 
     <div id="view-avatar-select" class="text-center p-4 w-full max-w-2xl hidden z-50 flex-col h-screen">
         <h2 class="text-xl font-bold mb-2 text-cyan-400 shrink-0">CHOOSE AVATAR</h2>
-        <div class="avatar-grid-container mb-2 w-full" id="avatar-grid">
-            </div>
+        <div class="avatar-grid-container mb-2 w-full" id="avatar-grid"></div>
         <div class="shrink-0 w-full pt-2 border-t border-slate-800">
             <button onclick="confirmJoin()" class="btn-primary py-4 text-xl" id="btn-join-confirm" disabled>READY</button>
             <button onclick="showView('view-join')" class="text-slate-500 underline mt-2">BACK</button>
@@ -307,7 +306,6 @@
     let localTimerInterval = null;
     const views = ['view-menu','view-host-lobby','view-host-game','view-join','view-avatar-select','view-student-wait','view-game','view-podium','view-rankings'];
     
-    // === 36 AVATARS ===
     const AVATAR_OPTIONS = [
         '🐯','🐰','🦁','🦄','🦖','👽','🤖','🐼','🦊','🐨','🐮','🐷',
         '🐸','🐵','🐔','🐧','🐦','🐤','🦆','🦅','🦉','🦇','🐺','🐗',
@@ -406,8 +404,6 @@
     function setMode(mode) {
         state.settings.mode = mode;
         const slider = document.getElementById('setting-slider');
-        
-        // Update Green Buttons
         document.querySelectorAll('#view-host-lobby .green').forEach(btn => btn.classList.remove('active'));
         document.getElementById(`btn-mode-${mode}`).classList.add('active');
 
@@ -422,7 +418,6 @@
 
     function setSync(type) {
         state.settings.sync = type;
-        // Update Orange Buttons (Modified from Purple)
         document.querySelectorAll('#view-host-lobby .orange').forEach(btn => btn.classList.remove('active'));
         document.getElementById(`btn-sync-${type}`).classList.add('active');
         if(state.gameId) db.ref(`games/${state.gameId}/settings`).update(state.settings);
@@ -631,7 +626,7 @@
     function startLocalTicker(endTime, elementId) {
         if(localTimerInterval) clearInterval(localTimerInterval);
         const el = document.getElementById(elementId);
-        let lastToneSec = -1; // To prevent multiple beeps in same second
+        let lastToneSec = -1;
         
         updateTime();
         localTimerInterval = setInterval(updateTime, 200);
@@ -641,9 +636,8 @@
             const diff = endTime - Date.now();
             const left = Math.ceil(diff / 1000);
             
-            // --- NEW: Countdown Audio Logic ---
             if (left <= 5 && left > 0 && left !== lastToneSec) {
-                playTone(600, 'square', 0.1); // Beep!
+                playTone(600, 'square', 0.1); 
                 lastToneSec = left;
             }
 
@@ -656,12 +650,13 @@
         }
     }
 
-    // ================= MATH ENGINE =================
+    // ================= MATH ENGINE (V38 UPDATED) =================
     
     function createMathProblem(topic, currentScore = 0) {
         let t = topic;
         if (topic === 'mixed') {
-            const types = ['integers', 'algebra', 'percent', 'area', 'volume'];
+            // Mixed now includes Angles and Factors
+            const types = ['integers', 'algebra', 'percent', 'area', 'volume', 'angles', 'factors'];
             t = types[Math.floor(Math.random() * types.length)];
         }
 
@@ -674,13 +669,10 @@
                 const ops = ['+','-'];
                 const op1 = ops[Math.floor(Math.random()*2)];
                 const op2 = ops[Math.floor(Math.random()*2)];
-                
                 let res = a;
                 if(op1==='+') res+=b; else res-=b;
                 if(op2==='+') res+=c; else res-=c;
-                
-                const qStr = `${a} ${op1} ${b<0?`(${b})`:b} ${op2} ${c<0?`(${c})`:c} = ?`;
-                return { type: 'text', qText: qStr, a: res };
+                return { type: 'text', qText: `${a} ${op1} ${b<0?`(${b})`:b} ${op2} ${c<0?`(${c})`:c} = ?`, a: res };
             } else {
                 const a = rInt(-10, 15);
                 const b = rInt(-10, 15);
@@ -690,6 +682,41 @@
             }
         }
         
+        // FACTORS (HCF & LCM) - NEW
+        if (t === 'factors') {
+            const gcd = (a, b) => !b ? a : gcd(b, a % b);
+            const lcm = (a, b) => (a * b) / gcd(a, b);
+            if (Math.random() < 0.5) {
+                const factor = rInt(2, 9);
+                const m1 = rInt(1, 4);
+                const m2 = rInt(1, 5);
+                const n1 = factor * m1;
+                const n2 = factor * (m1 === m2 ? m1 + 1 : m2);
+                return { type: 'text', qText: `HCF(${n1}, ${n2}) = ?`, a: gcd(n1, n2) };
+            } else {
+                const n1 = rInt(2, 8);
+                const n2 = rInt(2, 10);
+                return { type: 'text', qText: `LCM(${n1}, ${n2}) = ?`, a: lcm(n1, n2) };
+            }
+        }
+
+        // ANGLES - NEW
+        if (t === 'angles') {
+            const type = Math.random();
+            if (type < 0.4) { // Straight Line
+                const ang1 = rInt(30, 150);
+                return { type: 'geo', shape: 'line_angle', v1: ang1, qText: 'Find x', a: 180 - ang1 };
+            } else if (type < 0.7) { // Point
+                const ang1 = rInt(90, 140);
+                const ang2 = rInt(50, 100);
+                return { type: 'geo', shape: 'point_angle', v1: ang1, v2: ang2, qText: 'Find x', a: 360 - ang1 - ang2 };
+            } else { // Triangle
+                const ang1 = rInt(30, 90);
+                const ang2 = rInt(30, 170 - ang1);
+                return { type: 'geo', shape: 'tri_angle', v1: ang1, v2: ang2, qText: 'Find x', a: 180 - ang1 - ang2 };
+            }
+        }
+
         // AREA 
         if (t === 'area') {
             const rand = Math.random();
@@ -873,120 +900,77 @@
         ctx.fillStyle = '#22d3ee'; 
         ctx.font = "bold 20px 'Roboto Mono'";
 
-        if (q.shape === 'square') {
-            ctx.beginPath();
+        if (q.shape === 'line_angle') {
+            const len = 200;
+            ctx.beginPath(); ctx.moveTo(cx - len/2, cy + 50); ctx.lineTo(cx + len/2, cy + 50); ctx.stroke();
+            ctx.beginPath(); ctx.arc(cx, cy + 50, 40, Math.PI, 0); ctx.lineWidth = 1; ctx.stroke();
+            const rad = (180 - 60) * (Math.PI / 180);
+            const xEnd = cx + Math.cos(rad) * 100;
+            const yEnd = (cy + 50) - Math.sin(rad) * 100;
+            ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(cx, cy + 50); ctx.lineTo(xEnd, yEnd); ctx.stroke();
+            ctx.fillStyle = '#fbbf24'; ctx.fillText(`${q.v1}°`, cx + 40, cy + 20);
+            ctx.fillStyle = '#22d3ee'; ctx.fillText(`x`, cx - 40, cy + 20);
+        }
+        else if (q.shape === 'point_angle') {
+            const r = 90;
+            const drawLine = (deg) => {
+                const rad = deg * (Math.PI / 180);
+                ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(rad)*r, cy + Math.sin(rad)*r); ctx.stroke();
+            };
+            drawLine(0); drawLine(130); drawLine(240);
+            ctx.fillStyle = '#fff'; ctx.fillText(`${q.v1}°`, cx + 30, cy - 30);
+            ctx.fillText(`${q.v2}°`, cx - 40, cy);
+            ctx.fillStyle = '#22d3ee'; ctx.fillText(`x`, cx + 20, cy + 40);
+        }
+        else if (q.shape === 'tri_angle') {
+            const base = 140, height = 110;
+            const left = cx - base/2, right = cx + base/2, topY = cy - height/2, botY = cy + height/2;
+            ctx.beginPath(); ctx.moveTo(left, botY); ctx.lineTo(right, botY); ctx.lineTo(cx, topY); ctx.closePath(); ctx.stroke();
+            ctx.fillStyle = '#fff'; ctx.fillText(`${q.v1}°`, cx, topY + 30);
+            ctx.fillText(`${q.v2}°`, right - 20, botY - 10);
+            ctx.fillStyle = '#22d3ee'; ctx.fillText(`x`, left + 20, botY - 10);
+        }
+        else if (q.shape === 'square') {
             const size = 100;
-            ctx.rect(cx - size/2, cy - size/2, size, size);
-            ctx.stroke();
-            ctx.fillText(q.v1, cx, cy - size/2 - 15); 
-            ctx.fillText(q.v1, cx + size/2 + 15, cy);
+            ctx.strokeRect(cx - size/2, cy - size/2, size, size);
+            ctx.fillText(q.v1, cx, cy - size/2 - 15); ctx.fillText(q.v1, cx + size/2 + 15, cy);
         }
         else if (q.shape === 'rect') {
-            ctx.beginPath();
             const rw = 140, rh = 80;
-            ctx.rect(cx - rw/2, cy - rh/2, rw, rh);
-            ctx.stroke();
-            ctx.fillText(q.v1, cx, cy - rh/2 - 15);
-            ctx.fillText(q.v2, cx + rw/2 + 15, cy);
+            ctx.strokeRect(cx - rw/2, cy - rh/2, rw, rh);
+            ctx.fillText(q.v1, cx, cy - rh/2 - 15); ctx.fillText(q.v2, cx + rw/2 + 15, cy);
         }
         else if (q.shape === 'tri') {
-            ctx.beginPath();
-            const base = 120, height = 100;
-            const left = cx - base/2 + 20;
-            const bottom = cy + height/2 - 10;
-            ctx.moveTo(left, bottom);
-            ctx.lineTo(left + base, bottom);
-            ctx.lineTo(left, bottom - height);
-            ctx.closePath();
-            ctx.stroke();
-            // Height line
-            ctx.beginPath(); ctx.setLineDash([5, 5]);
-            ctx.moveTo(left, bottom); ctx.lineTo(left, bottom - height);
-            ctx.stroke(); ctx.setLineDash([]);
-            
-            ctx.fillText(q.v1, left + base/2, bottom + 20); 
-            ctx.fillText(q.v2, left - 20, bottom - height/2); 
+            const base = 120, height = 100; const left = cx - base/2 + 20, bottom = cy + height/2 - 10;
+            ctx.beginPath(); ctx.moveTo(left, bottom); ctx.lineTo(left + base, bottom); ctx.lineTo(left, bottom - height); ctx.closePath(); ctx.stroke();
+            ctx.beginPath(); ctx.setLineDash([5, 5]); ctx.moveTo(left, bottom); ctx.lineTo(left, bottom - height); ctx.stroke(); ctx.setLineDash([]);
+            ctx.fillText(q.v1, left + base/2, bottom + 20); ctx.fillText(q.v2, left - 20, bottom - height/2); 
         }
         else if (q.shape === 'parallelogram') {
-            const b = 140; 
-            const h = 80;  
-            const slant = 40;
-            const x = cx - b/2; 
-            const y = cy + h/2; 
-            
-            ctx.beginPath();
-            ctx.moveTo(x, y); 
-            ctx.lineTo(x + b, y); 
-            ctx.lineTo(x + b + slant, y - h); 
-            ctx.lineTo(x + slant, y - h); 
-            ctx.closePath();
-            ctx.stroke();
-            
-            ctx.beginPath(); ctx.setLineDash([5, 5]);
-            ctx.moveTo(x + slant, y - h); ctx.lineTo(x + slant, y); 
-            ctx.stroke(); ctx.setLineDash([]);
-            
-            ctx.fillText(q.v1, cx + slant/2, y + 20); 
-            ctx.fillText(q.v2, x + slant - 20, cy);   
+            const b = 140, h = 80, slant = 40, x = cx - b/2, y = cy + h/2; 
+            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + b, y); ctx.lineTo(x + b + slant, y - h); ctx.lineTo(x + slant, y - h); ctx.closePath(); ctx.stroke();
+            ctx.beginPath(); ctx.setLineDash([5, 5]); ctx.moveTo(x + slant, y - h); ctx.lineTo(x + slant, y); ctx.stroke(); ctx.setLineDash([]);
+            ctx.fillText(q.v1, cx + slant/2, y + 20); ctx.fillText(q.v2, x + slant - 20, cy);   
         }
         else if (q.shape === 'trapezoid') {
-            const topW = 80;
-            const botW = 160;
-            const h = 90;
-            const yBot = cy + h/2;
-            const yTop = cy - h/2;
-            const xCenter = cx;
-            
-            ctx.beginPath();
-            ctx.moveTo(xCenter - botW/2, yBot); 
-            ctx.lineTo(xCenter + botW/2, yBot); 
-            ctx.lineTo(xCenter + topW/2, yTop); 
-            ctx.lineTo(xCenter - topW/2, yTop); 
-            ctx.closePath();
-            ctx.stroke();
-            
-            ctx.beginPath(); ctx.setLineDash([5, 5]);
-            ctx.moveTo(xCenter, yTop); ctx.lineTo(xCenter, yBot);
-            ctx.stroke(); ctx.setLineDash([]);
-
-            ctx.fillText(q.v1, xCenter, yTop - 20); 
-            ctx.fillText(q.v2, xCenter, yBot + 20); 
-            ctx.fillText(q.v3, xCenter + 15, cy);   
+            const topW = 80, botW = 160, h = 90, yBot = cy + h/2, yTop = cy - h/2;
+            ctx.beginPath(); ctx.moveTo(cx - botW/2, yBot); ctx.lineTo(cx + botW/2, yBot); ctx.lineTo(cx + topW/2, yTop); ctx.lineTo(cx - topW/2, yTop); ctx.closePath(); ctx.stroke();
+            ctx.beginPath(); ctx.setLineDash([5, 5]); ctx.moveTo(cx, yTop); ctx.lineTo(cx, yBot); ctx.stroke(); ctx.setLineDash([]);
+            ctx.fillText(q.v1, cx, yTop - 20); ctx.fillText(q.v2, cx, yBot + 20); ctx.fillText(q.v3, cx + 15, cy);   
         }
         else if (q.shape === 'cube') {
-            const size = 80;
-            const offset = 40; 
-            const x = cx - size/2 - 20;
-            const y = cy - size/2 + 20;
-            
-            ctx.strokeRect(x, y, size, size);
-            ctx.strokeRect(x + offset, y - offset, size, size);
-            ctx.beginPath();
-            ctx.moveTo(x, y); ctx.lineTo(x + offset, y - offset);
-            ctx.moveTo(x + size, y); ctx.lineTo(x + size + offset, y - offset);
-            ctx.moveTo(x, y + size); ctx.lineTo(x + offset, y + size - offset);
-            ctx.moveTo(x + size, y + size); ctx.lineTo(x + size + offset, y + size - offset);
-            ctx.stroke();
+            const size = 80, offset = 40, x = cx - size/2 - 20, y = cy - size/2 + 20;
+            ctx.strokeRect(x, y, size, size); ctx.strokeRect(x + offset, y - offset, size, size);
+            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + offset, y - offset); ctx.moveTo(x + size, y); ctx.lineTo(x + size + offset, y - offset);
+            ctx.moveTo(x, y + size); ctx.lineTo(x + offset, y + size - offset); ctx.moveTo(x + size, y + size); ctx.lineTo(x + size + offset, y + size - offset); ctx.stroke();
             ctx.fillText(q.v1, x + size/2, y + size + 20);
         }
         else if (q.shape === 'cuboid') {
-            const w = 100, h = 60;
-            const offset = 40;
-            const x = cx - w/2 - 20;
-            const y = cy - h/2 + 20;
-            
-            ctx.strokeRect(x, y, w, h);
-            ctx.strokeRect(x + offset, y - offset, w, h);
-            ctx.beginPath();
-            ctx.moveTo(x, y); ctx.lineTo(x + offset, y - offset);
-            ctx.moveTo(x + w, y); ctx.lineTo(x + w + offset, y - offset);
-            ctx.moveTo(x, y + h); ctx.lineTo(x + offset, y + h - offset);
-            ctx.moveTo(x + w, y + h); ctx.lineTo(x + w + offset, y + h - offset);
-            ctx.stroke();
-
-            ctx.fillText(q.v1, x + w/2, y + h + 20); 
-            ctx.fillText(q.v2, x + w + offset + 20, y + h/2); 
-            ctx.fillText(q.v3, x - 20, y + h/2); 
+            const w = 100, h = 60, offset = 40, x = cx - w/2 - 20, y = cy - h/2 + 20;
+            ctx.strokeRect(x, y, w, h); ctx.strokeRect(x + offset, y - offset, w, h);
+            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + offset, y - offset); ctx.moveTo(x + w, y); ctx.lineTo(x + w + offset, y - offset);
+            ctx.moveTo(x, y + h); ctx.lineTo(x + offset, y + h - offset); ctx.moveTo(x + w, y + h); ctx.lineTo(x + w + offset, y + h - offset); ctx.stroke();
+            ctx.fillText(q.v1, x + w/2, y + h + 20); ctx.fillText(q.v2, x + w + offset + 20, y + h/2); ctx.fillText(q.v3, x - 20, y + h/2); 
         }
 
         ctx.fillStyle = 'white';
