@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Math Arena V28: Stable Edition</title>
+    <title>Math Arena V29: Full Modes</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -14,7 +14,6 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Roboto+Mono:wght@500;700&display=swap');
         
-        /* 防止手機下拉刷新導致退出 */
         body { background-color: #050510; color: white; touch-action: none; user-select: none; font-family: 'Roboto Mono', monospace; overflow: hidden; overscroll-behavior-y: contain; }
         .font-display { font-family: 'Black Ops One', cursive; }
         .neon-text { text-shadow: 0 0 10px #22d3ee; }
@@ -24,24 +23,15 @@
         .progress-bar { transition: width 0.3s linear; }
         
         .btn-primary { @apply bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-6 rounded-lg shadow-[0_0_15px_rgba(8,145,178,0.5)] transform transition active:scale-95 w-full mb-3; }
-        .btn-disabled { @apply bg-slate-700 text-slate-500 cursor-not-allowed shadow-none transform-none opacity-50; }
-
+        
         .avatar-btn { @apply text-4xl p-2 rounded-xl border-2 border-slate-700 transition-all cursor-pointer grayscale opacity-70 bg-slate-800; }
-        .avatar-btn.selected { 
-            @apply bg-slate-800 grayscale-0 opacity-100 scale-110 z-10;
-            border-color: #fbbf24; 
-            box-shadow: 0 0 20px 5px rgba(251, 191, 36, 0.6); 
-        }
+        .avatar-btn.selected { @apply bg-slate-800 grayscale-0 opacity-100 scale-110 z-10; border-color: #fbbf24; box-shadow: 0 0 20px 5px rgba(251, 191, 36, 0.6); }
         .avatar-btn.taken { @apply opacity-20 cursor-not-allowed border-red-900 bg-slate-900 scale-90 grayscale; }
-        .kick-btn { @apply ml-3 text-red-500 hover:text-red-400 font-bold cursor-pointer px-2 py-1 rounded hover:bg-red-900/30 transition-colors; }
+        
+        /* V29 新增：運算符號按鈕樣式 */
+        .op-btn { @apply border border-slate-600 text-slate-400 py-2 rounded text-xl font-bold transition-all; }
+        .op-btn.active { @apply border-cyan-500 text-white bg-cyan-900/80 shadow-[0_0_10px_rgba(34,211,238,0.3)]; }
 
-        @keyframes podium-up { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .podium-enter { animation: podium-up 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        @keyframes slide-in { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .rank-item { animation: slide-in 0.4s ease-out forwards; opacity: 0; }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-
-        /* V28 層級修復 */
         #view-game { z-index: 10; }
         #game-freeze-overlay { z-index: 50; }
         #view-podium { z-index: 100 !important; background-color: #050510; }
@@ -57,27 +47,42 @@
     </div>
 
     <div id="view-host-lobby" class="w-full h-full p-6 hidden flex-col max-w-4xl mx-auto">
-        <h2 class="text-3xl text-cyan-400 font-display mb-6 border-b border-slate-700 pb-2">LOBBY</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
-            <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 flex flex-col items-center relative">
-                <div class="bg-white p-2 rounded-lg mb-4"><div id="qrcode"></div></div>
-                <div class="text-2xl font-bold text-white mb-2" id="join-count-display">0 PLAYERS</div>
-                <div id="player-grid" class="mt-4 flex flex-wrap justify-center gap-2 w-full max-h-60 overflow-y-auto content-start"></div>
+        <h2 class="text-3xl text-cyan-400 font-display mb-4 border-b border-slate-700 pb-2">LOBBY</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 flex flex-col items-center relative">
+                <div class="bg-white p-2 rounded-lg mb-2"><div id="qrcode"></div></div>
+                <div class="text-xl font-bold text-white mb-2" id="join-count-display">0 PLAYERS</div>
+                <div id="player-grid" class="mt-2 flex flex-wrap justify-center gap-2 w-full max-h-48 overflow-y-auto content-start"></div>
             </div>
-            <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 flex flex-col">
-                <div class="mb-6">
-                    <label class="block text-slate-400 text-sm mb-2 font-bold">MODE</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button id="btn-mode-score" class="border border-slate-600 text-slate-400 py-2 rounded" onclick="setMode('score')">🏁 Score Race</button>
-                        <button id="btn-mode-time" class="border border-cyan-500 text-cyan-400 bg-cyan-900/50 py-2 rounded" onclick="setMode('time')">⏱️ Timer Mode</button>
+            
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 flex flex-col overflow-y-auto">
+                
+                <div class="mb-4">
+                    <label class="block text-slate-400 text-xs mb-2 font-bold uppercase">Game Type</label>
+                    <div class="grid grid-cols-5 gap-1">
+                        <button class="op-btn" onclick="setOp('add')" id="btn-op-add">+</button>
+                        <button class="op-btn" onclick="setOp('sub')" id="btn-op-sub">−</button>
+                        <button class="op-btn" onclick="setOp('mul')" id="btn-op-mul">×</button>
+                        <button class="op-btn" onclick="setOp('div')" id="btn-op-div">÷</button>
+                        <button class="op-btn active" onclick="setOp('mixed')" id="btn-op-mixed">ALL</button>
                     </div>
                 </div>
-                <div class="mb-6">
-                    <label class="block text-slate-400 text-sm mb-2 font-bold" id="setting-label">TIME LIMIT</label>
-                    <input type="range" id="setting-slider" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer accent-cyan-500">
-                    <div class="text-right text-cyan-400 text-2xl font-bold mt-2" id="setting-value">60 SEC</div>
+
+                <div class="mb-4">
+                    <label class="block text-slate-400 text-xs mb-2 font-bold uppercase">Win Condition</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="btn-mode-score" class="border border-slate-600 text-slate-400 py-2 rounded text-sm" onclick="setMode('score')">🏁 Score Race</button>
+                        <button id="btn-mode-time" class="border border-cyan-500 text-cyan-400 bg-cyan-900/50 py-2 rounded text-sm" onclick="setMode('time')">⏱️ Timer Mode</button>
+                    </div>
                 </div>
-                <button id="btn-host-start" onclick="hostStartGame()" class="btn-primary mt-auto bg-gradient-to-r from-green-500 to-emerald-600 text-2xl py-4" disabled>⏳ WAIT FOR PLAYERS (0/2)</button>
+
+                <div class="mb-4">
+                    <label class="block text-slate-400 text-xs mb-2 font-bold uppercase" id="setting-label">TIME LIMIT</label>
+                    <input type="range" id="setting-slider" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer accent-cyan-500">
+                    <div class="text-right text-cyan-400 text-xl font-bold mt-1" id="setting-value">60 SEC</div>
+                </div>
+
+                <button id="btn-host-start" onclick="hostStartGame()" class="btn-primary mt-auto bg-gradient-to-r from-green-500 to-emerald-600 text-xl py-3" disabled>⏳ WAIT (0/2)</button>
             </div>
         </div>
     </div>
@@ -203,22 +208,20 @@
     };
 
     let app, db;
-    
-    // --- V28 關鍵修正：身份鎖定 ---
     const savedPid = sessionStorage.getItem('ma_pid');
     const savedName = sessionStorage.getItem('ma_name');
     const savedAvatar = sessionStorage.getItem('ma_avatar');
     
+    // V29: 新增 'op' (operation) 默認為 mixed
     let state = {
         role: 'none', 
         gameId: new URLSearchParams(window.location.search).get('gid'),
-        // 優先使用舊身份，否則才生成新的
         playerId: savedPid || ('p_' + Math.random().toString(36).substr(2,6)),
         playerName: savedName || 'Guest', 
         avatar: savedAvatar || '',
         score: 0, 
         active: false,
-        settings: { mode: 'time', target: 60 },
+        settings: { mode: 'time', target: 60, op: 'mixed' }, // V29 Default
         q: null, input: '', endTime: 0,
         hostLoop: null
     };
@@ -236,7 +239,6 @@
         if(id === 'view-game') resizeCanvas();
     }
 
-    // --- V28 關鍵修正：自動重連 ---
     window.addEventListener('load', () => {
         try {
             app = firebase.initializeApp(firebaseConfig);
@@ -249,16 +251,14 @@
                 }
             });
 
-            // 檢查是否是斷線重連
             if (state.gameId && savedPid) {
-                console.log("♻️ 恢復 V28 連線中...");
-                confirmJoin(true); // true = 重連模式
+                console.log("♻️ 恢復 V29 連線中...");
+                confirmJoin(true); 
             } else if (state.gameId) {
                 showView('view-join');
             } else {
                 showView('view-menu');
             }
-
         } catch (e) { console.error(e); }
     });
 
@@ -267,9 +267,14 @@
         if (!db) return alert("Database not ready.");
         state.role = 'host';
         showView('view-host-lobby');
+        
+        // V29: 更新 Slider 監聽
         const slider = document.getElementById('setting-slider');
         slider.oninput = () => updateSettingsDisplay();
+        
+        // 初始化 V29 默認設置
         setMode('time');
+        setOp('mixed');
 
         const ref = db.ref('games').push();
         state.gameId = ref.key;
@@ -293,12 +298,12 @@
             const startBtn = document.getElementById('btn-host-start');
             if(count < 2) {
                 startBtn.disabled = true;
-                startBtn.innerHTML = `⏳ WAIT FOR PLAYERS (${count}/2)`;
-                startBtn.className = "btn-primary mt-auto bg-slate-700 text-slate-500 cursor-not-allowed shadow-none transform-none opacity-50";
+                startBtn.innerHTML = `⏳ WAIT (${count}/2)`;
+                startBtn.className = "btn-primary mt-auto bg-slate-700 text-slate-500 cursor-not-allowed opacity-50";
             } else {
                 startBtn.disabled = false;
                 startBtn.innerHTML = "🚀 START GAME";
-                startBtn.className = "btn-primary mt-auto bg-gradient-to-r from-green-500 to-emerald-600 text-2xl py-4";
+                startBtn.className = "btn-primary mt-auto bg-gradient-to-r from-green-500 to-emerald-600 text-xl py-3";
             }
         });
     }
@@ -312,15 +317,25 @@
         if(state.gameId) db.ref(`games/${state.gameId}/settings`).update(state.settings);
     }
 
+    // V29: 新增運算符號選擇
+    function setOp(op) {
+        state.settings.op = op;
+        document.querySelectorAll('.op-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`btn-op-${op}`).classList.add('active');
+        if(state.gameId) db.ref(`games/${state.gameId}/settings`).update(state.settings);
+    }
+
     function setMode(mode) {
         state.settings.mode = mode;
         const slider = document.getElementById('setting-slider');
-        document.getElementById('btn-mode-score').className = mode==='score' ? "border border-cyan-500 text-cyan-400 bg-cyan-900/50 py-2 rounded" : "border border-slate-600 text-slate-400 py-2 rounded";
-        document.getElementById('btn-mode-time').className = mode==='time' ? "border border-cyan-500 text-cyan-400 bg-cyan-900/50 py-2 rounded" : "border border-slate-600 text-slate-400 py-2 rounded";
+        document.getElementById('btn-mode-score').className = mode==='score' ? "border border-cyan-500 text-cyan-400 bg-cyan-900/50 py-2 rounded text-sm" : "border border-slate-600 text-slate-400 py-2 rounded text-sm";
+        document.getElementById('btn-mode-time').className = mode==='time' ? "border border-cyan-500 text-cyan-400 bg-cyan-900/50 py-2 rounded text-sm" : "border border-slate-600 text-slate-400 py-2 rounded text-sm";
+        
         if(mode==='score') { 
             document.getElementById('setting-label').innerText="TARGET SCORE"; slider.min=500; slider.max=5000; slider.step=100; slider.value=1000; 
         } else { 
-            document.getElementById('setting-label').innerText="TIME LIMIT"; slider.min=30; slider.max=300; slider.step=10; slider.value=60; 
+            // V29: 時間範圍改為 20 - 180
+            document.getElementById('setting-label').innerText="TIME LIMIT"; slider.min=20; slider.max=180; slider.step=10; slider.value=60; 
         }
         updateSettingsDisplay();
     }
@@ -461,18 +476,14 @@
         document.getElementById('btn-join-confirm').disabled = false;
     }
 
-    // --- V28 關鍵修正：身份寫入 Session ---
     function confirmJoin(isReconnect = false) {
         if(!db) return alert("Waiting for connection...");
-        
-        // 儲存身份
         sessionStorage.setItem('ma_pid', state.playerId);
         sessionStorage.setItem('ma_name', state.playerName);
         sessionStorage.setItem('ma_avatar', state.avatar);
         sessionStorage.setItem('ma_gid', state.gameId);
 
         if (!isReconnect) {
-            // 新加入時才 set，避免重連時分數歸零
             const playerRef = db.ref(`games/${state.gameId}/players/${state.playerId}`);
             playerRef.update({ name: state.playerName, avatar: state.avatar, score: 0 });
         }
@@ -495,7 +506,6 @@
                     showView('view-game');
                     if(!state.q) generateQuestion();
                     startLocalTicker(game.endTime, 'client-timer-display');
-                    // 啟動渲染循環，解決白屏
                     requestAnimationFrame(gameRenderLoop);
                 }
             } 
@@ -528,22 +538,43 @@
         }
     }
 
-    // ================= GAMEPLAY & RENDERING =================
+    // ================= GAMEPLAY GENERATION (V29: Full Modes) =================
     
     function generateQuestion() {
-        const type = Math.random() > 0.5 ? 'add' : 'mul';
+        const op = state.settings.op || 'mixed';
+        let types = [];
+        
+        if (op === 'mixed') types = ['add', 'sub', 'mul', 'div'];
+        else types = [op];
+
+        const type = types[Math.floor(Math.random() * types.length)];
         let a, b, ans;
+
         if (type === 'add') {
             a = Math.floor(Math.random() * 50) + 10;
             b = Math.floor(Math.random() * 50) + 10;
             ans = a + b;
             state.qText = `${a} + ${b} = ?`;
-        } else {
-            a = Math.floor(Math.random() * 12) + 2;
+        } 
+        else if (type === 'sub') {
+            a = Math.floor(Math.random() * 50) + 20;
+            b = Math.floor(Math.random() * (a - 10)) + 5;
+            ans = a - b;
+            state.qText = `${a} - ${b} = ?`;
+        }
+        else if (type === 'mul') {
+            a = Math.floor(Math.random() * 9) + 2;
             b = Math.floor(Math.random() * 9) + 2;
             ans = a * b;
             state.qText = `${a} × ${b} = ?`;
         }
+        else if (type === 'div') {
+            ans = Math.floor(Math.random() * 9) + 2; // 答案
+            b = Math.floor(Math.random() * 9) + 2;   // 除數
+            a = ans * b;                             // 被除數
+            state.qText = `${a} ÷ ${b} = ?`;
+        }
+
         state.q = { ans: ans };
         state.input = '';
         updateInputDisplay();
@@ -601,7 +632,6 @@
         }, 800);
     }
 
-    // --- V28 關鍵修正：Canvas 渲染循環 ---
     let canvas, ctx;
     function resizeCanvas() {
         canvas = document.getElementById('gameCanvas');
@@ -621,12 +651,9 @@
 
     function drawGame() {
         if(!ctx || !state.qText) return;
-        
-        // 1. 強制重繪背景 (解決白屏)
         ctx.fillStyle = '#0f172a';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // 2. 題目卡片
         ctx.fillStyle = '#1e293b'; 
         const cardW = Math.min(300, canvas.width - 40);
         const cardH = 160;
@@ -634,17 +661,14 @@
         const cardY = (canvas.height - cardH) / 2;
         
         ctx.beginPath();
-        // 簡單圓角矩形模擬
         ctx.roundRect(cardX, cardY, cardW, cardH, 20);
         ctx.fill();
         ctx.lineWidth = 4;
         
-        // 3. 呼吸燈效果
         const time = Date.now() / 1000;
         ctx.strokeStyle = `rgba(34, 211, 238, ${0.5 + Math.sin(time * 3) * 0.2})`;
         ctx.stroke();
 
-        // 4. 文字
         ctx.font = 'bold 40px "Roboto Mono"';
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
@@ -700,7 +724,6 @@
         if(list[2]) showRank('podium-3', list[2], 2);
     }
 
-    // --- V28 關鍵修正：補全列表顯示邏輯 ---
     function showFullRankingList(list) {
         showView('view-rankings');
         if(state.role === 'host') document.getElementById('host-restart-area').classList.remove('hidden');
