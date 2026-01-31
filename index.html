@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Math Arena V32: Fair Play</title>
+    <title>Math Arena V33: Visual Geo</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -23,26 +23,37 @@
         .lane-item { position: absolute; left: 0; right: 0; transition: top 0.5s ease-in-out; }
         .progress-bar { transition: width 0.3s linear; }
         
-        /* Buttons */
-        .btn-primary { @apply bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-6 rounded-lg shadow-[0_0_15px_rgba(8,145,178,0.5)] transform transition active:scale-95 w-full mb-3; }
+        /* General Button Glow Styles */
+        .glow-btn-base {
+            @apply border border-slate-600 text-slate-400 rounded font-bold transition-all bg-slate-800 hover:bg-slate-700 relative overflow-hidden;
+        }
         
-        /* Topic Buttons - Enhanced Backlight */
-        .topic-btn { @apply border border-slate-600 text-slate-400 py-3 rounded text-xs font-bold transition-all bg-slate-800 hover:bg-slate-700 relative overflow-hidden; }
+        /* 1. Topic Buttons (Cyan Glow) */
+        .topic-btn { @apply glow-btn-base py-3 text-xs; }
         .topic-btn.active { 
-            @apply border-cyan-300 text-white bg-cyan-700; 
-            box-shadow: 0 0 20px rgba(34, 211, 238, 0.6), inset 0 0 10px rgba(34, 211, 238, 0.4);
-            transform: scale(1.02);
-            z-index: 1;
+            @apply border-cyan-300 text-white bg-cyan-900/80; 
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.5), inset 0 0 10px rgba(34, 211, 238, 0.2);
+            transform: scale(1.02); z-index: 1;
         }
 
-        /* Mode Buttons */
-        .mode-btn { @apply border border-slate-600 text-slate-400 py-2 rounded text-sm font-bold bg-slate-800; }
-        .mode-btn.active { @apply border-green-400 text-green-100 bg-green-800 shadow-[0_0_15px_rgba(74,222,128,0.4)]; }
+        /* 2. Mode Buttons (Green Glow) */
+        .mode-btn { @apply glow-btn-base py-2 text-sm; }
+        .mode-btn.active { 
+            @apply border-green-400 text-white bg-green-900/80; 
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.5), inset 0 0 10px rgba(74, 222, 128, 0.2);
+        }
         
-        /* Sync Buttons */
-        .sync-btn { @apply border border-slate-600 text-slate-400 py-2 rounded text-sm font-bold bg-slate-800; }
-        .sync-btn.active { @apply border-purple-400 text-purple-100 bg-purple-800 shadow-[0_0_15px_rgba(192,132,252,0.4)]; }
+        /* 3. Sync Buttons (Purple Glow - Requested Feature) */
+        .sync-btn { @apply glow-btn-base py-2 text-sm; }
+        .sync-btn.active { 
+            @apply border-purple-400 text-white bg-purple-900/80; 
+            box-shadow: 0 0 20px rgba(192, 132, 252, 0.6), inset 0 0 10px rgba(192, 132, 252, 0.3);
+            border-width: 2px;
+        }
 
+        /* Main Action Button */
+        .btn-primary { @apply bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-6 rounded-lg shadow-[0_0_15px_rgba(8,145,178,0.5)] transform transition active:scale-95 w-full mb-3; }
+        
         /* Avatar Selection */
         .avatar-btn { 
             @apply text-6xl p-4 rounded-2xl border-2 border-slate-700 transition-all cursor-pointer grayscale opacity-60 bg-slate-800 flex justify-center items-center h-24 w-24 mx-auto; 
@@ -66,7 +77,7 @@
 <body class="h-screen flex flex-col items-center justify-center bg-[#050510]">
 
     <div id="view-menu" class="text-center space-y-6 p-4 max-w-md w-full hidden z-50">
-        <h1 class="text-5xl font-display italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2 neon-text">MATH<br>ARENA S1</h1>
+        <h1 class="text-5xl font-display italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2 neon-text">MATH<br>ARENA V33</h1>
         <div id="db-status" class="text-xs text-red-500 font-bold mb-4">🔴 Connecting...</div>
         <button onclick="setupHost()" class="btn-primary border-l-4 border-cyan-300 text-xl py-6">📡 HOST CLASS</button>
     </div>
@@ -88,7 +99,7 @@
                         <button class="topic-btn active" onclick="setTopic('integers')" id="btn-topic-integers">🔢 Integers</button>
                         <button class="topic-btn" onclick="setTopic('algebra')" id="btn-topic-algebra">✖️ Algebra</button>
                         <button class="topic-btn" onclick="setTopic('percent')" id="btn-topic-percent">％ Percent</button>
-                        <button class="topic-btn" onclick="setTopic('geometry')" id="btn-topic-geometry">📐 Area/Vol</button>
+                        <button class="topic-btn" onclick="setTopic('geometry')" id="btn-topic-geometry">📐 Area/Vol (Pic)</button>
                         <button class="topic-btn" onclick="setTopic('coords')" id="btn-topic-coords">📍 Coords</button>
                         <button class="topic-btn" onclick="setTopic('mixed')" id="btn-topic-mixed">🎲 Mixed</button>
                     </div>
@@ -265,12 +276,11 @@
         score: 0, 
         active: false,
         settings: { mode: 'time', target: 60, topic: 'integers', sync: 'sequence' }, 
-        q: null, 
-        qText: '', 
+        q: null, // Now stores full object
         input: '', 
         endTime: 0,
         hostLoop: null,
-        sharedQuestions: [], // For sync mode
+        sharedQuestions: [],
         currentQIndex: 0
     };
 
@@ -405,7 +415,7 @@
             updateData.endTime = state.endTime;
         }
 
-        // If 'Same Set' is selected, generate 100 questions and upload them
+        // Generate Pool (100 Qs)
         if(state.settings.sync === 'sequence') {
             const pool = [];
             for(let i=0; i<100; i++) pool.push(createMathProblem(state.settings.topic));
@@ -469,12 +479,10 @@
                 // Sort by score DESC
                 arr.sort((a,b) => b.score - a.score);
 
-                // Assign Rank (handling ties: 1, 1, 2)
+                // Assign Rank (Dense)
                 let currentRank = 1;
                 for(let i=0; i<arr.length; i++) {
-                    if (i > 0 && arr[i].score < arr[i-1].score) {
-                        currentRank++; // Dense ranking: 1, 1, 2
-                    }
+                    if (i > 0 && arr[i].score < arr[i-1].score) currentRank++;
                     arr[i].rank = currentRank;
                 }
 
@@ -486,7 +494,6 @@
     function renderLanes(players, target, mode) {
         const container = document.getElementById('lanes-container');
         const topScore = players[0]?.score || 1;
-        // Visual Scaling
         const scaleBase = mode === 'score' ? target : Math.max(1000, topScore * 1.2);
 
         players.forEach((p, index) => {
@@ -576,13 +583,13 @@
             state.settings = game.settings;
             
             if (game.status === 'playing') {
-                if(game.questionPool) state.sharedQuestions = game.questionPool; // Load shared pool
+                if(game.questionPool) state.sharedQuestions = game.questionPool; 
                 
                 document.getElementById('game-freeze-overlay').classList.add('hidden');
                 if (!state.active) {
                     state.active = true;
                     showView('view-game');
-                    if(!state.q) generateQuestion(); // First Question
+                    if(!state.q) generateQuestion(); 
                     startLocalTicker(game.endTime, 'client-timer-display');
                     requestAnimationFrame(gameRenderLoop);
                 }
@@ -616,9 +623,8 @@
         }
     }
 
-    // ================= S1 MATH ENGINE (SHARED OR RANDOM) =================
+    // ================= S1 MATH ENGINE (VISUAL UPDATE) =================
     
-    // Helper to Create 1 Problem Object
     function createMathProblem(topic) {
         let t = topic;
         if (topic === 'mixed') {
@@ -626,97 +632,82 @@
             t = types[Math.floor(Math.random() * types.length)];
         }
 
+        // --- NEW GEOMETRY LOGIC (RETURNS OBJECT) ---
+        if (t === 'geometry') {
+            const rand = Math.random();
+            // Square (Area)
+            if (rand < 0.25) {
+                const s = rInt(3, 12);
+                return { type: 'geo', shape: 'square', v1: s, qText: 'Area?', a: s*s };
+            } 
+            // Rectangle (Area)
+            else if (rand < 0.5) {
+                const w = rInt(4, 10);
+                const h = rInt(2, 8);
+                return { type: 'geo', shape: 'rect', v1: w, v2: h, qText: 'Area?', a: w*h };
+            }
+            // Triangle (Area)
+            else if (rand < 0.75) {
+                const b = rInt(4, 10);
+                const h = rInt(2, 8);
+                // Ensure even area
+                return { type: 'geo', shape: 'tri', v1: b, v2: h, qText: 'Area?', a: 0.5*b*h };
+            }
+            // Circle (Circumference ~ approx) or simple diameter
+            else {
+                const r = rInt(2, 6);
+                // Let's do a logic puzzle: "r=X, d=?" to keep input simple (no PI typing)
+                return { type: 'geo', shape: 'circle', v1: r, qText: 'Diameter?', a: r*2 };
+            }
+        }
+        
+        // --- TEXT BASED ---
         let qStr = "", ans = 0;
-
-        // 1. Integers
+        
         if (t === 'integers') {
             const a = rInt(-10, 15);
             const b = rInt(-10, 15);
             const op = Math.random() > 0.5 ? '+' : '-';
             ans = (op === '+') ? a + b : a - b;
-            const bStr = b < 0 ? `(${b})` : b;
-            qStr = `${a} ${op} ${bStr} = ?`;
+            qStr = `${a} ${op} ${b<0?`(${b})`:b} = ?`;
         }
-        // 2. Algebra
         else if (t === 'algebra') {
             const x = rInt(2, 12); 
-            const type = Math.random();
-            if (type < 0.4) {
+            if (Math.random() < 0.4) {
                 const a = rInt(2, 5);
                 qStr = `${a}x = ${a*x}, x = ?`;
                 ans = x;
             } else {
                 const a = rInt(2, 4);
                 const b = rInt(1, 10);
-                const c = a * x + b;
-                qStr = `${a}x + ${b} = ${c}, x=?`;
+                qStr = `${a}x + ${b} = ${a*x+b}, x=?`;
                 ans = x;
             }
         }
-        // 3. Percent
         else if (t === 'percent') {
             const base = rInt(1, 10) * 100; 
             const rate = rInt(1, 9) * 10;   
             ans = (rate / 100) * base;
             qStr = `${rate}% of ${base} = ?`;
         }
-        // 4. Geometry
-        else if (t === 'geometry') {
-            const shape = Math.random();
-            if (shape < 0.4) {
-                const s = rInt(3, 12);
-                qStr = `Square side ${s}. Area?`;
-                ans = s * s;
-            } else if (shape < 0.7) {
-                const l = rInt(4, 10);
-                const w = rInt(2, 8);
-                qStr = `Rect ${l} by ${w}. Area?`;
-                ans = l * w;
-            } else {
-                const l = rInt(2, 5);
-                const w = rInt(2, 4);
-                const h = rInt(2, 4);
-                qStr = `Cuboid ${l}×${w}×${h}. Vol?`;
-                ans = l * w * h;
-            }
-        }
-        // 5. Coords
         else if (t === 'coords') {
-            if (Math.random() < 0.6) {
-                let x = rInt(1, 9) * (Math.random()<.5?1:-1);
-                let y = rInt(1, 9) * (Math.random()<.5?1:-1);
-                qStr = `P(${x}, ${y}) is in Q?`;
-                if(x>0 && y>0) ans = 1; else if(x<0 && y>0) ans = 2; else if(x<0 && y<0) ans = 3; else ans = 4;
-            } else {
-                const v = rInt(3, 15);
-                qStr = `Dist (${v}, 0) to O?`;
-                ans = v;
-            }
+            const v = rInt(3, 15);
+            qStr = `Dist (${v}, 0) to O?`;
+            ans = v;
         }
-        return { q: qStr, a: ans };
+
+        return { type: 'text', qText: qStr, a: ans };
     }
 
     function generateQuestion() {
-        // If Sync Mode is ON and we have questions
+        let p;
         if (state.settings.sync === 'sequence' && state.sharedQuestions.length > 0) {
-            const p = state.sharedQuestions[state.currentQIndex];
-            if(p) {
-                state.q = { ans: p.a };
-                state.qText = p.q;
-            } else {
-                // Out of questions? Loop or Random fallback
-                const fallback = createMathProblem(state.settings.topic);
-                state.q = { ans: fallback.a };
-                state.qText = fallback.q;
-            }
-        } 
-        else {
-            // Random Mode
-            const p = createMathProblem(state.settings.topic);
-            state.q = { ans: p.a };
-            state.qText = p.q;
+            p = state.sharedQuestions[state.currentQIndex] || createMathProblem(state.settings.topic);
+        } else {
+            p = createMathProblem(state.settings.topic);
         }
 
+        state.q = p; // Store the whole object
         state.input = '';
         updateInputDisplay();
     }
@@ -737,13 +728,13 @@
     function checkAnswer() {
         if(!state.active) return;
         const playerAns = parseFloat(state.input);
-        const correct = Math.abs(playerAns - state.q.ans) < 0.01;
+        const correct = Math.abs(playerAns - state.q.a) < 0.01;
 
         if (correct) {
             playTone(1200, 'triangle', 0.1);
             showFeedback('Correct!', 'text-green-400');
             state.score += 100;
-            state.currentQIndex++; // Advance index
+            state.currentQIndex++; 
             document.getElementById('client-score').innerText = state.score + " PTS";
             if(state.gameId && state.playerId) db.ref(`games/${state.gameId}/players/${state.playerId}/score`).set(state.score);
             generateQuestion();
@@ -766,7 +757,7 @@
         setTimeout(() => { el.style.opacity = 0; el.style.transform = "translate(-50%, -50%) scale(0.5)"; }, 800);
     }
 
-    // ================= DRAWING =================
+    // ================= DRAWING (UPDATED FOR GEO) =================
     let canvas, ctx;
     function resizeCanvas() {
         canvas = document.getElementById('gameCanvas');
@@ -785,20 +776,25 @@
     }
 
     function drawGame() {
-        if(!ctx || !state.qText) return;
+        if(!ctx || !state.q) return;
+        const w = canvas.width, h = canvas.height;
+
+        // Clear
         ctx.fillStyle = '#0f172a';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, w, h);
         
+        // Card BG
         ctx.fillStyle = '#1e293b'; 
-        const cardW = Math.min(320, canvas.width - 20);
-        const cardH = 180;
-        const cardX = (canvas.width - cardW) / 2;
-        const cardY = (canvas.height - cardH) / 2;
+        const cardW = Math.min(320, w - 20);
+        const cardH = 220; // Taller for shapes
+        const cardX = (w - cardW) / 2;
+        const cardY = (h - cardH) / 2;
         
         ctx.beginPath();
         ctx.roundRect(cardX, cardY, cardW, cardH, 20);
         ctx.fill();
         
+        // Border Pulse
         const time = Date.now() / 1000;
         ctx.lineWidth = 4;
         ctx.strokeStyle = `rgba(34, 211, 238, ${0.5 + Math.sin(time * 3) * 0.2})`;
@@ -807,20 +803,99 @@
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        
-        if (state.qText.length > 15) {
-             ctx.font = `bold 22px "Roboto Mono"`; 
-             const words = state.qText.split('. ');
-             if(words.length > 1) {
-                 ctx.fillText(words[0], canvas.width/2, canvas.height/2 - 15);
-                 ctx.fillText(words[1], canvas.width/2, canvas.height/2 + 15);
-             } else {
-                 ctx.fillText(state.qText, canvas.width/2, canvas.height/2);
-             }
+
+        // --- DRAW CONTENT BASED ON TYPE ---
+        const cx = w / 2;
+        const cy = h / 2;
+
+        if (state.q.type === 'geo') {
+            drawGeometryQuestion(cx, cy, state.q);
         } else {
-            ctx.font = `bold 36px "Roboto Mono"`;
-            ctx.fillText(state.qText, canvas.width/2, canvas.height/2);
+            // Text Fallback
+            if (state.q.qText.length > 15) {
+                 ctx.font = `bold 22px "Roboto Mono"`; 
+                 const words = state.q.qText.split('. ');
+                 if(words.length > 1) {
+                     ctx.fillText(words[0], cx, cy - 15);
+                     ctx.fillText(words[1], cx, cy + 15);
+                 } else {
+                     ctx.fillText(state.q.qText, cx, cy);
+                 }
+            } else {
+                ctx.font = `bold 36px "Roboto Mono"`;
+                ctx.fillText(state.q.qText, cx, cy);
+            }
         }
+    }
+
+    function drawGeometryQuestion(cx, cy, q) {
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 3;
+        ctx.fillStyle = '#22d3ee'; // Cyan for labels
+        ctx.font = "bold 20px 'Roboto Mono'";
+
+        if (q.shape === 'square') {
+            // Draw Square
+            ctx.beginPath();
+            const size = 100;
+            ctx.rect(cx - size/2, cy - size/2, size, size);
+            ctx.stroke();
+            // Label
+            ctx.fillText(q.v1, cx, cy - size/2 - 15); 
+            ctx.fillText(q.v1, cx + size/2 + 15, cy);
+        }
+        else if (q.shape === 'rect') {
+            // Draw Rect
+            ctx.beginPath();
+            const rw = 140, rh = 80;
+            ctx.rect(cx - rw/2, cy - rh/2, rw, rh);
+            ctx.stroke();
+            // Label
+            ctx.fillText(q.v1, cx, cy - rh/2 - 15); // Width
+            ctx.fillText(q.v2, cx + rw/2 + 15, cy); // Height
+        }
+        else if (q.shape === 'tri') {
+            // Draw Right Triangle
+            ctx.beginPath();
+            const base = 120, height = 100;
+            const left = cx - base/2 + 20;
+            const bottom = cy + height/2 - 10;
+            
+            ctx.moveTo(left, bottom);
+            ctx.lineTo(left + base, bottom); // Base line
+            ctx.lineTo(left, bottom - height); // Top point
+            ctx.closePath();
+            ctx.stroke();
+            
+            // Right angle mark
+            ctx.beginPath();
+            ctx.rect(left, bottom - 15, 15, 15);
+            ctx.stroke();
+            
+            // Labels
+            ctx.fillText(q.v1, left + base/2, bottom + 20); // Base
+            ctx.fillText(q.v2, left - 20, bottom - height/2); // Height
+        }
+        else if (q.shape === 'circle') {
+            ctx.beginPath();
+            const r = 50;
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+            // Radius Line
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + r, cy);
+            ctx.strokeStyle = '#facc15'; // Yellow radius
+            ctx.stroke();
+            // Label
+            ctx.fillStyle = '#facc15';
+            ctx.fillText("r=" + q.v1, cx + r/2, cy - 10);
+        }
+
+        // Draw the Question text below the shape
+        ctx.fillStyle = 'white';
+        ctx.font = "bold 24px 'Roboto Mono'";
+        ctx.fillText(q.qText, cx, cy + 90);
     }
 
     // ================= PODIUM =================
@@ -849,7 +924,6 @@
             if(id === 'podium-1') el.classList.add('z-20');
         });
 
-        // Helper to update visual rank number (handle ties)
         const updateRankNum = (pos, rank) => {
             const map = {0: 'p1-rank-display', 1: 'p2-rank-display', 2: 'p3-rank-display'};
             if(document.getElementById(map[pos])) document.getElementById(map[pos]).innerText = rank;
@@ -864,7 +938,6 @@
             document.getElementById(`p${rankNum}-avatar`).innerText = pData.avatar;
             document.getElementById(`p${rankNum}-score`).innerText = pData.score + " PTS";
             
-            // Show actual calculated rank (e.g., "1" instead of "2" if tied)
             updateRankNum(posIndex, pData.rank);
 
             setTimeout(() => { 
@@ -873,7 +946,6 @@
             }, posIndex * 300);
         };
 
-        // Render Top 3 slots, but using data from 0,1,2
         if(list[0]) showRank('podium-1', list[0], 0); 
         if(list[1]) showRank('podium-2', list[1], 1);
         if(list[2]) showRank('podium-3', list[2], 2);
@@ -888,7 +960,7 @@
         if(!list) return;
 
         list.forEach((p, idx) => {
-            const rank = p.rank || (idx + 1); // Use calculated rank
+            const rank = p.rank || (idx + 1);
             let colorClass = "text-white";
             if(rank === 1) colorClass = "text-yellow-400 font-bold";
             else if(rank === 2) colorClass = "text-slate-300 font-bold";
