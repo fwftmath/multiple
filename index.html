@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Math Arena V21: HK S1 Edition</title>
+    <title>Math Arena V21.1: Polished S1 Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -18,13 +18,25 @@
         .font-display { font-family: 'Black Ops One', cursive; }
         .neon-text { text-shadow: 0 0 10px #22d3ee; }
         .btn-primary { @apply bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-6 rounded-lg shadow-[0_0_15px_rgba(8,145,178,0.5)] transform transition active:scale-95 w-full mb-3; }
+        
+        /* Topic Buttons */
         .btn-topic { @apply bg-slate-800 hover:bg-slate-700 border border-slate-600 text-cyan-400 font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95 flex flex-col items-center justify-center gap-2; }
-        .btn-topic.selected { @apply bg-cyan-900 border-cyan-400 text-white shadow-[0_0_15px_rgba(34,211,238,0.4)]; }
+        .btn-topic:active { @apply bg-cyan-900 border-cyan-400; }
 
-        /* Avatar & Game Styles */
-        .avatar-btn { @apply text-4xl p-2 rounded-xl border-2 border-slate-700 transition-all cursor-pointer grayscale opacity-70 bg-slate-800; }
-        .avatar-btn.selected { @apply bg-slate-800 grayscale-0 opacity-100 scale-110 z-10 border-[#fbbf24] shadow-[0_0_20px_rgba(251,191,36,0.6)]; }
+        /* Avatar Styling - Fixed Glow */
+        .avatar-btn { 
+            @apply text-4xl p-4 rounded-xl border-2 border-slate-700 transition-all cursor-pointer grayscale opacity-60 bg-slate-800 flex items-center justify-center; 
+        }
+        .avatar-btn.selected { 
+            @apply grayscale-0 opacity-100 scale-110 z-10 text-black;
+            background-color: #fbbf24; /* Tailwind yellow-400 */
+            border-color: #f59e0b;     /* Tailwind amber-500 */
+            box-shadow: 0 0 25px rgba(251, 191, 36, 0.8);
+        }
         .avatar-btn.taken { @apply opacity-20 cursor-not-allowed border-red-900 bg-slate-900 scale-90 grayscale; }
+
+        /* Keypad & Lane */
+        .key-btn { @apply active:scale-95 transition-transform shadow-lg; }
         .lane-item { position: absolute; left: 0; right: 0; transition: top 0.5s ease-in-out; }
         .progress-bar { transition: width 0.3s linear; }
 
@@ -43,7 +55,7 @@
 
     <div id="view-topic-select" class="w-full h-full p-6 hidden flex-col max-w-4xl mx-auto z-50">
         <h2 class="text-3xl text-cyan-400 font-display mb-2 text-center">SELECT TOPIC</h2>
-        <p class="text-center text-slate-500 mb-6">Choose the HK S1 Curriculum Module</p>
+        <p class="text-center text-slate-500 mb-6">Choose HK S1 Curriculum Module</p>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 overflow-y-auto pb-20">
             <button onclick="selectTopic('area')" class="btn-topic"><span class="text-3xl">📐</span><span>AREA &<br>SHAPES</span></button>
             <button onclick="selectTopic('volume')" class="btn-topic"><span class="text-3xl">📦</span><span>VOLUME</span></button>
@@ -64,7 +76,7 @@
             <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 flex flex-col items-center">
                 <div class="bg-white p-2 rounded-lg mb-4"><div id="qrcode"></div></div>
                 <div class="text-2xl font-bold text-white mb-2" id="join-count-display">0 PLAYERS</div>
-                <div id="player-grid" class="mt-4 flex flex-wrap justify-center gap-2 w-full max-h-60 overflow-y-auto"></div>
+                <div id="player-grid" class="mt-4 flex flex-wrap justify-center content-start gap-2 w-full h-64 overflow-y-auto bg-slate-950/50 p-2 rounded-lg"></div>
             </div>
             <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 flex flex-col">
                 <div class="mb-6">
@@ -137,13 +149,7 @@
                 <div id="hint-display" class="text-xs text-yellow-500/80 font-mono mt-1"></div>
             </div>
             <div class="grid grid-cols-3 gap-1 h-full pb-safe" id="keypad-grid">
-                <button class="key-btn" onclick="input('7')">7</button><button class="key-btn" onclick="input('8')">8</button><button class="key-btn" onclick="input('9')">9</button>
-                <button class="key-btn" onclick="input('4')">4</button><button class="key-btn" onclick="input('5')">5</button><button class="key-btn" onclick="input('6')">6</button>
-                <button class="key-btn" onclick="input('1')">1</button><button class="key-btn" onclick="input('2')">2</button><button class="key-btn" onclick="input('3')">3</button>
-                <button class="key-btn bg-rose-900/40 text-rose-500" onclick="input('DEL')">DEL</button>
-                <button class="key-btn" onclick="input('0')">0</button>
-                <button class="key-btn bg-gradient-to-b from-emerald-600 to-emerald-800 text-white" onclick="checkAnswer()">GO</button>
-            </div>
+                </div>
         </div>
     </div>
 
@@ -171,16 +177,16 @@
         db.ref(".info/connected").on("value", s => document.getElementById('db-status').innerText = s.val()?"🟢 ONLINE":"🟠 CONNECTING...");
     } catch(e){console.error(e);}
 
-    // --- GAME STATE & CONSTANTS ---
+    // --- GAME STATE ---
     const AVATARS = ['🐯','🐰','🦁','🦄','🦖','👽','🤖','🐼','🦊','🐨','🐮','🐷'];
     const AUDIO = new (window.AudioContext||window.webkitAudioContext)();
-    function beep(f,t,d){if(AUDIO.state==='suspended')AUDIO.resume();const o=AUDIO.createOscillator(),g=AUDIO.createGain();o.type=t;o.frequency.value=f;o.connect(g);g.connect(AUDIO.destination);o.start();g.gain.exponentialRampToValueAtTime(0.001,AUDIO.currentTime+d);o.stop(AUDIO.currentTime+d);}
+    function playTone(f,t,d){if(AUDIO.state==='suspended')AUDIO.resume();const o=AUDIO.createOscillator(),g=AUDIO.createGain();o.type=t;o.frequency.value=f;o.connect(g);g.connect(AUDIO.destination);o.start();g.gain.exponentialRampToValueAtTime(0.001,AUDIO.currentTime+d);o.stop(AUDIO.currentTime+d);}
 
     let state = {
         role: 'none', gid: new URLSearchParams(location.search).get('gid'), pid: 'p_'+Math.random().toString(36).substr(2,6),
         name: 'Guest', av: '', score: 0, active: false,
-        settings: { mode: 'time', target: 60, topic: 'area' }, // Added topic
-        q: null, input: '', lastType: null
+        settings: { mode: 'time', target: 60, topic: 'area' },
+        q: null, input: '', lastBeep: -1
     };
 
     // --- VIEW MANAGEMENT ---
@@ -190,8 +196,8 @@
 
     // --- HOST FUNCTIONS ---
     function setupHost() { 
-        if(!db)return; state.role='host'; 
-        show('view-topic-select'); // Step 1: Select Topic
+        if(!db)return; state.role='host'; AUDIO.resume();
+        show('view-topic-select');
     }
 
     function selectTopic(topic) {
@@ -205,10 +211,15 @@
         
         new QRCode(document.getElementById("qrcode"), { text: `${location.origin}${location.pathname}?gid=${state.gid}`, width:128, height:128 });
         
+        // FIX: Improved Lobby Sync Logic
         db.ref(`games/${state.gid}/players`).on('value', snap => {
-            const grid=document.getElementById('player-grid'), count=snap.numChildren();
-            grid.innerHTML=''; 
-            snap.forEach(c => grid.innerHTML+=`<div class="bg-slate-800 px-3 py-2 rounded border border-slate-600 flex gap-2"><span class="text-xl">${c.val().avatar}</span><span class="font-bold">${c.val().name}</span></div>`);
+            const grid=document.getElementById('player-grid');
+            grid.innerHTML=''; // Clear first
+            let count=0;
+            snap.forEach(c => {
+                count++;
+                grid.innerHTML += `<div class="bg-slate-800 px-3 py-2 rounded border border-slate-600 flex gap-2 items-center animate-[pop_0.3s]"><span class="text-2xl">${c.val().avatar}</span><span class="font-bold">${c.val().name}</span></div>`;
+            });
             document.getElementById('join-count-display').innerText = `${count} PLAYERS`;
             
             const btn = document.getElementById('btn-host-start');
@@ -216,7 +227,7 @@
             else { btn.disabled=true; btn.className="btn-primary mt-auto bg-slate-700 text-slate-500 opacity-50 cursor-not-allowed"; btn.innerText=`⏳ WAIT (${count}/2)`; }
         });
         
-        setMode('time'); // Default
+        setMode('time');
     }
 
     function setMode(m) {
@@ -239,11 +250,23 @@
         db.ref(`games/${state.gid}`).update({ status: 'playing', startTime: Date.now(), endTime: end });
         show('view-host-game');
         
+        // Host Game Loop
         let loop = setInterval(() => {
-            if(state.settings.mode==='time' && Date.now() >= end) { clearInterval(loop); finishGame(); }
-        }, 1000);
+            const now = Date.now();
+            if(state.settings.mode==='time') {
+                const left = Math.ceil((end - now)/1000);
+                
+                // FIX: Countdown Sound Logic
+                if(left <= 10 && left > 0 && left !== state.lastBeep) {
+                    state.lastBeep = left;
+                    playTone(800 + (10-left)*100, 'triangle', 0.15); // Pitch rises
+                }
 
-        // Host Timer UI
+                if(now >= end) { clearInterval(loop); finishGame(); }
+            }
+        }, 500);
+
+        // Host UI Timer
         let uiLoop = setInterval(() => {
             const el = document.getElementById('host-timer-display');
             if(state.settings.mode==='time') {
@@ -251,18 +274,17 @@
                 if(left<=0) { el.innerText="00:00"; clearInterval(uiLoop); }
                 else el.innerText = `${Math.floor(left/60)}:${(left%60).toString().padStart(2,'0')}`;
             } else { el.innerText = "RACE"; }
-        }, 500);
+        }, 200);
 
         db.ref(`games/${state.gid}/players`).on('value', snap => {
             const players=[]; snap.forEach(c=>players.push(c.val()));
             players.sort((a,b)=>(b.score||0)-(a.score||0));
             
-            // Check Score Win
             if(state.settings.mode==='score' && players[0]?.score >= state.settings.target) { clearInterval(loop); finishGame(); }
 
-            // Render Lanes
             const con = document.getElementById('lanes-container');
             const max = state.settings.mode==='score' ? state.settings.target : Math.max(state.settings.target*10, (players[0]?.score||0)*1.2);
+            
             players.forEach((p,i) => {
                 let lane = document.getElementById('lane-'+p.name);
                 if(!lane) {
@@ -281,6 +303,7 @@
     function finishGame() {
         db.ref(`games/${state.gid}`).update({ status: 'finished' });
         document.getElementById('host-status-msg').style.opacity=1;
+        playTone(300, 'sawtooth', 1.0); // End buzzer
         setTimeout(() => {
             db.ref(`games/${state.gid}/players`).once('value', s => {
                 const arr=[]; s.forEach(c=>arr.push(c.val()));
@@ -294,11 +317,18 @@
     function goToAvatarSelect() {
         if(!document.getElementById('player-name').value) return;
         state.name = document.getElementById('player-name').value;
+        AUDIO.resume(); // Ensure audio context ready
         show('view-avatar-select');
         const grid = document.getElementById('avatar-grid'); grid.innerHTML='';
         AVATARS.forEach((a,i) => {
             const b=document.createElement('div'); b.className='avatar-btn'; b.innerText=a;
-            b.onclick=()=> { document.querySelectorAll('.avatar-btn').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); state.av=a; document.getElementById('btn-join-confirm').disabled=false; };
+            b.onclick=()=> { 
+                document.querySelectorAll('.avatar-btn').forEach(x=>x.classList.remove('selected')); 
+                b.classList.add('selected'); 
+                state.av=a; 
+                document.getElementById('btn-join-confirm').disabled=false;
+                playTone(600, 'sine', 0.1); 
+            };
             grid.appendChild(b);
         });
     }
@@ -319,7 +349,7 @@
                 if(!state.active) {
                     state.active = true;
                     show('view-game');
-                    setupKeypad(state.settings.topic); // Setup Keypad based on Topic
+                    setupKeypad(state.settings.topic);
                     generateQuestion();
                     startClientTimer(g.endTime);
                 }
@@ -334,12 +364,19 @@
 
     function startClientTimer(end) {
         const el = document.getElementById('client-timer-display');
-        setInterval(() => {
+        let tLoop = setInterval(() => {
             if(!end) { el.innerText="RACE"; return; }
             let left = Math.ceil((end-Date.now())/1000);
-            if(left<=0) el.innerText="00:00";
+            
+            // Client side countdown audio sync
+            if(left <= 10 && left > 0 && left !== state.lastBeep) {
+                state.lastBeep = left;
+                playTone(800 + (10-left)*100, 'triangle', 0.1); 
+            }
+
+            if(left<=0) { el.innerText="00:00"; clearInterval(tLoop); }
             else el.innerText = `${Math.floor(left/60)}:${(left%60).toString().padStart(2,'0')}`;
-        }, 500);
+        }, 200);
     }
 
     // --- MATH ENGINE V21 ---
@@ -348,84 +385,23 @@
     function resize() { const p=document.getElementById('canvas-container'); cvs.width=p.clientWidth; cvs.height=p.clientHeight; if(state.q) draw(); }
     window.onresize=resize;
 
-    // KEYPAD CONFIG
     function setupKeypad(topic) {
-        // If topic needs negative numbers (Equation, Directed, Coord), replace a key
-        // Currently we replaced DEL button row. Let's make "0" smaller or replace an empty slot if any.
-        // My design has 12 slots. 0-9, DEL, GO.
-        // To add '-', I need to modify the grid dynamically.
         const grid = document.getElementById('keypad-grid');
         const needsMinus = ['equation', 'directed', 'coord'].includes(topic);
-        
-        let html = '';
-        const keys = [7,8,9,4,5,6,1,2,3];
-        keys.forEach(k => html += `<button class="key-btn bg-slate-800 text-cyan-100 rounded text-2xl font-bold active:bg-cyan-700" onclick="input('${k}')">${k}</button>`);
-        
-        if(needsMinus) {
-            html += `<button class="key-btn bg-slate-800 text-cyan-100 rounded text-2xl font-bold" onclick="input('-')">-</button>`;
-            html += `<button class="key-btn bg-slate-800 text-cyan-100 rounded text-2xl font-bold" onclick="input('0')">0</button>`;
-            html += `<button class="key-btn bg-rose-900/40 text-rose-500 rounded font-bold" onclick="input('DEL')">⌫</button>`;
-        } else {
-            html += `<button class="key-btn bg-rose-900/40 text-rose-500 rounded font-bold" onclick="input('DEL')">⌫</button>`;
-            html += `<button class="key-btn bg-slate-800 text-cyan-100 rounded text-2xl font-bold" onclick="input('0')">0</button>`;
-            html += `<button class="key-btn bg-slate-800 opacity-0 pointer-events-none"></button>`; // Empty filler
-        }
-        
-        // Add GO button wide at bottom or integrated? 
-        // The previous design had 4x3? No 3 cols.
-        // Let's stick to the 3-column grid in HTML and just inject buttons.
-        // Wait, the HTML has a fixed grid. Let's rewrite innerHTML.
-        
-        // Revised layout: 4 Rows of 3 Cols
-        // 7 8 9
-        // 4 5 6
-        // 1 2 3
-        // - 0 DEL (if minus needed)
-        // OR
-        // DEL 0 GO (Standard)
-        
-        let btmRow = '';
-        if(needsMinus) {
-            btmRow = `<button class="bg-slate-700 text-yellow-400 rounded text-2xl font-bold" onclick="input('-')">-</button>
-                      <button class="bg-slate-800 text-cyan-100 rounded text-2xl font-bold" onclick="input('0')">0</button>
-                      <button class="bg-rose-900/40 text-rose-500 rounded font-bold" onclick="input('DEL')">⌫</button>`;
-        } else {
-             btmRow = `<button class="bg-rose-900/40 text-rose-500 rounded font-bold" onclick="input('DEL')">⌫</button>
-                       <button class="bg-slate-800 text-cyan-100 rounded text-2xl font-bold" onclick="input('0')">0</button>
-                       <button class="bg-slate-800 text-slate-600 rounded text-xl font-bold pointer-events-none">.</button>`;
-        }
-        
-        // We need a GO button separately or inside grid? 
-        // In my HTML, GO is in the grid.
-        // Let's put GO spanning whole bottom or right side.
-        // Simplest: 7 8 9 | 4 5 6 | 1 2 3 | - 0 DEL | GO (Separate div?)
-        // Let's use the HTML structure I wrote: grid-cols-3.
-        
         grid.innerHTML = '';
         [7,8,9,4,5,6,1,2,3].forEach(n => {
-            grid.innerHTML += `<button class="bg-slate-800 text-cyan-100 rounded text-2xl font-bold active:bg-cyan-700 shadow" onclick="input('${n}')">${n}</button>`;
+            grid.innerHTML += `<button class="key-btn bg-slate-800 text-cyan-100 rounded text-2xl font-bold active:bg-cyan-700 shadow" onclick="input('${n}')">${n}</button>`;
         });
         
         if(needsMinus) {
-            grid.innerHTML += `<button class="bg-slate-700 text-yellow-400 rounded text-2xl font-bold shadow" onclick="input('-')">-</button>`;
-            grid.innerHTML += `<button class="bg-slate-800 text-cyan-100 rounded text-2xl font-bold shadow" onclick="input('0')">0</button>`;
-            grid.innerHTML += `<button class="bg-rose-900/40 text-rose-500 rounded font-bold shadow" onclick="input('DEL')">DEL</button>`;
+            grid.innerHTML += `<button class="key-btn bg-slate-700 text-yellow-400 rounded text-2xl font-bold shadow" onclick="input('-')">-</button>`;
+            grid.innerHTML += `<button class="key-btn bg-slate-800 text-cyan-100 rounded text-2xl font-bold shadow" onclick="input('0')">0</button>`;
+            grid.innerHTML += `<button class="key-btn bg-rose-900/40 text-rose-500 rounded font-bold shadow" onclick="input('DEL')">DEL</button>`;
         } else {
-             grid.innerHTML += `<button class="bg-rose-900/40 text-rose-500 rounded font-bold shadow" onclick="input('DEL')">DEL</button>`;
-             grid.innerHTML += `<button class="bg-slate-800 text-cyan-100 rounded text-2xl font-bold shadow" onclick="input('0')">0</button>`;
+             grid.innerHTML += `<button class="key-btn bg-rose-900/40 text-rose-500 rounded font-bold shadow" onclick="input('DEL')">DEL</button>`;
+             grid.innerHTML += `<button class="key-btn bg-slate-800 text-cyan-100 rounded text-2xl font-bold shadow" onclick="input('0')">0</button>`;
              grid.innerHTML += `<div class="bg-transparent"></div>`;
         }
-        
-        // Append GO button usually occupies a big chunk or separate.
-        // I'll make the keypad grid 3 columns, 4 rows.
-        // The 'GO' button is outside in the HTML structure? 
-        // Ah, I see in HTML: grid-cols-3 gap-1.
-        // Let's just append GO at the very end as a span-3 button if possible, or keep it in the flow.
-        // To make it clean: The Grid is strictly numbers. The GO button should be separate or the last item.
-        
-        // Quick fix: Add GO as a large button below the grid in CSS, 
-        // OR add it as the 4th row item.
-        // Let's just add it to the grid.
         grid.innerHTML += `<button class="col-span-3 bg-gradient-to-b from-emerald-600 to-emerald-800 text-white rounded font-bold text-xl py-2 active:translate-y-1 shadow-lg mt-1" onclick="checkAnswer()">GO</button>`;
     }
 
@@ -436,7 +412,6 @@
         let q = { type: topic, ans: 0 };
         let hint = "";
 
-        // --- 1. AREA ---
         if(topic === 'area') {
             const shapes = diff==='easy'?['rect','para']:['tri','trap','comp'];
             const shape = shapes[r(0,shapes.length-1)];
@@ -447,256 +422,129 @@
             else if(shape==='trap') { q.t=r(4,8); q.b=q.t+r(2,6); q.h=r(4,8); if((q.t+q.b)*q.h%2)q.h++; q.ans=((q.t+q.b)*q.h)/2; hint="Area = (Top+Btm)×H÷2"; }
             else { q.w=r(8,12); q.h=r(8,12); q.cw=r(3,5); q.ch=r(3,5); q.ans=(q.w*q.h)-(q.cw*q.ch); hint="Rect - Cut"; }
         }
-        
-        // --- 2. VOLUME ---
         else if(topic === 'volume') {
             q.shape = 'cuboid';
-            if(diff==='easy') {
-                q.l=r(3,8); q.w=r(2,6); q.h=r(2,6);
-                q.ans = q.l*q.w*q.h;
-                hint = "Vol = L × W × H";
-            } else {
-                // Prism Base Area * Height
-                q.shape = 'prism';
-                q.area = r(12,30); q.h=r(4,10);
-                q.ans = q.area * q.h;
-                hint = "Vol = Base Area × H";
-            }
+            if(diff==='easy') { q.l=r(3,8); q.w=r(2,6); q.h=r(2,6); q.ans = q.l*q.w*q.h; hint = "Vol = L × W × H"; } 
+            else { q.shape = 'prism'; q.area = r(12,30); q.h=r(4,10); q.ans = q.area * q.h; hint = "Vol = Base Area × H"; }
         }
-
-        // --- 3. EQUATION (ax + b = c) ---
         else if(topic === 'equation') {
-            // Generates x first to ensure integer answer
-            const x = r(-9,9);
-            const a = r(2,6) * (Math.random()<.5?1:-1);
-            const b = r(-10,10);
-            const c = (a*x) + b;
-            q.txt = `${a}x ${b>=0?'+ '+b:'- '+Math.abs(b)} = ${c}`;
-            q.ans = x;
-            hint = "Solve for x";
+            const x = r(-9,9); const a = r(2,6) * (Math.random()<.5?1:-1); const b = r(-10,10); const c = (a*x) + b;
+            q.txt = `${a}x ${b>=0?'+ '+b:'- '+Math.abs(b)} = ${c}`; q.ans = x; hint = "Solve for x";
         }
-
-        // --- 4. PERCENTAGE ---
         else if(topic === 'percent') {
-            if(diff==='easy') {
-                // X% of Y
-                const p = r(1,9)*10; // 10, 20...90
-                const y = r(2,20)*5; // 10, 15...100
-                q.txt = `${p}% of ${y} = ?`;
-                q.ans = (p/100)*y;
-            } else {
-                // Discount / Change
-                const p = r(1,5)*10;
-                const y = r(5,15)*10;
-                const isInc = Math.random()>.5;
-                q.txt = `${y} ${isInc?'increased':'decreased'}\nby ${p}%`;
-                q.ans = isInc ? y*(1+p/100) : y*(1-p/100);
-            }
+            if(diff==='easy') { const p = r(1,9)*10; const y = r(2,20)*5; q.txt = `${p}% of ${y} = ?`; q.ans = (p/100)*y; } 
+            else { const p = r(1,5)*10; const y = r(5,15)*10; const isInc = Math.random()>.5; q.txt = `${y} ${isInc?'increased':'decreased'}\nby ${p}%`; q.ans = isInc ? y*(1+p/100) : y*(1-p/100); }
             hint = "Calculate Value";
         }
-
-        // --- 5. DIRECTED NUMBERS ---
         else if(topic === 'directed') {
-            const n1 = r(-12, 12);
-            const n2 = r(-12, 12);
-            const ops = ['+','-','×'];
-            const op = ops[r(0,2)];
-            // Avoid complicated division for now
-            if(op==='+') q.ans = n1 + n2;
-            else if(op==='-') q.ans = n1 - n2;
-            else if(op==='×') q.ans = n1 * n2;
-            
-            // Format: (-5) + (-3)
-            const fmt = n => n<0 ? `(${n})` : n;
-            q.txt = `${fmt(n1)} ${op} ${fmt(n2)}`;
-            hint = "Watch the signs";
+            const n1 = r(-12, 12); const n2 = r(-12, 12); const ops = ['+','-','×']; const op = ops[r(0,2)];
+            if(op==='+') q.ans = n1 + n2; else if(op==='-') q.ans = n1 - n2; else if(op==='×') q.ans = n1 * n2;
+            const fmt = n => n<0 ? `(${n})` : n; q.txt = `${fmt(n1)} ${op} ${fmt(n2)}`; hint = "Watch the signs";
         }
-
-        // --- 6. ANGLES ---
         else if(topic === 'angles') {
             q.subType = diff==='easy' ? (Math.random()>.5?'vert':'supp') : 'comp'; 
-            // vert = vertically opposite (equal)
-            // supp = straight line (sum 180)
-            // comp = right angle (sum 90)
-            
-            if(q.subType === 'vert') {
-                q.ans = r(30, 150);
-                q.angleKnown = q.ans; 
-                hint = "Vertically Opposite";
-            } else if (q.subType === 'supp') {
-                q.ans = r(30, 150);
-                q.angleKnown = 180 - q.ans;
-                hint = "Straight Line = 180°";
-            } else {
-                q.ans = r(20, 70);
-                q.angleKnown = 90 - q.ans;
-                hint = "Right Angle = 90°";
-            }
+            if(q.subType === 'vert') { q.ans = r(30, 150); q.angleKnown = q.ans; hint = "Vertically Opposite"; } 
+            else if (q.subType === 'supp') { q.ans = r(30, 150); q.angleKnown = 180 - q.ans; hint = "Straight Line = 180°"; } 
+            else { q.ans = r(20, 70); q.angleKnown = 90 - q.ans; hint = "Right Angle = 90°"; }
         }
-
-        // --- 7. COORDINATES ---
         else if(topic === 'coord') {
-            // Show a point, ask for X or Y coordinate
-            q.x = r(-5, 5);
-            q.y = r(-5, 5);
-            if(q.x===0) q.x++; if(q.y===0) q.y--; // Avoid origin ambiguity
-            
-            q.ask = Math.random() > 0.5 ? 'x' : 'y';
-            q.ans = q.ask === 'x' ? q.x : q.y;
-            hint = `Find ${q.ask.toUpperCase()}-coordinate`;
+            q.x = r(-5, 5); q.y = r(-5, 5); if(q.x===0) q.x++; if(q.y===0) q.y--; 
+            q.ask = Math.random() > 0.5 ? 'x' : 'y'; q.ans = q.ask === 'x' ? q.x : q.y; hint = `Find ${q.ask.toUpperCase()}-coordinate`;
         }
 
-        state.q = q;
-        state.input = '';
-        document.getElementById('input-display').innerText = '_';
-        document.getElementById('hint-display').innerText = hint;
+        state.q = q; state.input = '';
+        document.getElementById('input-display').innerText = '_'; document.getElementById('hint-display').innerText = hint;
         draw();
     }
 
     function draw() {
         const w=cvs.width, h=cvs.height, cx=w/2, cy=h/2;
-        ctx.clearRect(0,0,w,h);
-        ctx.strokeStyle='#22d3ee'; ctx.fillStyle='#fff'; ctx.lineWidth=3;
+        ctx.clearRect(0,0,w,h); ctx.strokeStyle='#22d3ee'; ctx.fillStyle='#fff'; ctx.lineWidth=3;
         ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='bold 24px Roboto Mono';
-
-        // Helper
         const label = (t,x,y,c='#fbbf24') => { ctx.fillStyle='#0f172a'; ctx.fillRect(x-12,y-12,24,24); ctx.fillStyle=c; ctx.fillText(t,x,y); };
 
         if(state.q.type === 'area') {
-            // ... (Same drawing logic as V20, abbreviated for space)
             const s=Math.min(w,h)/20;
-            // Simplified drawing for brevity in V21
             if(state.q.shape==='rect') { ctx.strokeRect(cx-state.q.w*s/2, cy-state.q.h*s/2, state.q.w*s, state.q.h*s); label(state.q.w,cx,cy-state.q.h*s/2-20); label(state.q.h,cx+state.q.w*s/2+20,cy); }
             else if(state.q.shape==='tri') { ctx.beginPath(); ctx.moveTo(cx,cy-state.q.h*s/2); ctx.lineTo(cx-state.q.b*s/2,cy+state.q.h*s/2); ctx.lineTo(cx+state.q.b*s/2,cy+state.q.h*s/2); ctx.closePath(); ctx.stroke(); label(state.q.b,cx,cy+state.q.h*s/2+20); label(state.q.h,cx+10,cy); }
-            // Add other shapes as needed
-            else { ctx.fillText(state.q.shape.toUpperCase(), cx, cy); }
+            else if(state.q.shape==='trap') { 
+                const top=state.q.t*s, btm=state.q.b*s, hh=state.q.h*s; 
+                ctx.beginPath(); ctx.moveTo(cx-top/2, cy-hh/2); ctx.lineTo(cx+top/2, cy-hh/2); ctx.lineTo(cx+btm/2, cy+hh/2); ctx.lineTo(cx-btm/2, cy+hh/2); ctx.closePath(); ctx.stroke();
+                label(state.q.t, cx, cy-hh/2-20); label(state.q.b, cx, cy+hh/2+20); label(state.q.h, cx-btm/2-20, cy);
+            }
+            else { 
+                ctx.strokeRect(cx-state.q.w*s/2, cy-state.q.h*s/2, state.q.w*s, state.q.h*s);
+                ctx.fillStyle='rgba(255,255,255,0.1)'; ctx.fillRect(cx+state.q.w*s/2-state.q.cw*s, cy-state.q.h*s/2, state.q.cw*s, state.q.ch*s);
+                ctx.fillStyle='#fff'; ctx.fillText("MISSING", cx+state.q.w*s/2-state.q.cw*s/2, cy-state.q.h*s/2+state.q.ch*s/2);
+            }
         }
         else if(state.q.type === 'volume') {
-             // Draw basic 3D Cube representation
-             const s = 30; 
              const dx=20, dy=20;
              if(state.q.shape==='cuboid') {
-                ctx.strokeRect(cx-50, cy-50, 100, 100); // Front
+                ctx.strokeRect(cx-50, cy-50, 100, 100); 
                 ctx.beginPath(); ctx.moveTo(cx-50,cy-50); ctx.lineTo(cx-50+dx,cy-50-dy); ctx.lineTo(cx+50+dx,cy-50-dy); ctx.lineTo(cx+50+dx,cy+50-dy); ctx.lineTo(cx+50,cy+50); ctx.stroke();
                 ctx.moveTo(cx+50+dx,cy-50-dy); ctx.lineTo(cx+50,cy-50); ctx.stroke();
                 label(state.q.l, cx, cy+60); label(state.q.h, cx-60, cy); label(state.q.w, cx+60, cy-60);
-             } else {
-                 ctx.font='20px Roboto Mono';
-                 ctx.fillText(`Base Area = ${state.q.area}`, cx, cy-20);
-                 ctx.fillText(`Height = ${state.q.h}`, cx, cy+20);
-             }
+             } else { ctx.fillText(`Base Area = ${state.q.area}`, cx, cy-20); ctx.fillText(`Height = ${state.q.h}`, cx, cy+20); }
         }
         else if(state.q.type === 'equation' || state.q.type === 'percent' || state.q.type === 'directed') {
-            ctx.font='bold 32px Roboto Mono';
-            ctx.fillStyle = '#a5f3fc';
+            ctx.font='bold 32px Roboto Mono'; ctx.fillStyle = '#a5f3fc';
             const lines = state.q.txt.split('\n');
             lines.forEach((l,i) => ctx.fillText(l, cx, cy + (i*40) - ((lines.length-1)*20)));
         }
         else if(state.q.type === 'angles') {
-            const len = 100;
-            ctx.beginPath();
-            if(state.q.subType === 'comp') {
-                // Right angle L shape
-                ctx.moveTo(cx-len, cy+20); ctx.lineTo(cx, cy+20); ctx.lineTo(cx, cy-len); ctx.stroke();
-                // Splitter
-                const rad = (state.q.angleKnown * Math.PI)/180;
-                ctx.moveTo(cx, cy+20); ctx.lineTo(cx - Math.cos(rad)*len, cy+20 - Math.sin(rad)*len); ctx.stroke();
-                // Square mark
-                ctx.strokeRect(cx-15,cy+5,15,15);
-                ctx.fillText(state.q.angleKnown+'°', cx-30, cy-40);
-                ctx.fillStyle='#fbbf24'; ctx.fillText('?', cx-60, cy);
-            } else if(state.q.subType === 'supp') {
-                // Straight line
-                ctx.moveTo(cx-len, cy); ctx.lineTo(cx+len, cy); ctx.stroke();
-                // Splitter
-                ctx.moveTo(cx, cy); ctx.lineTo(cx-30, cy-len); ctx.stroke();
-                ctx.fillText(state.q.angleKnown+'°', cx+20, cy-20);
-                ctx.fillStyle='#fbbf24'; ctx.fillText('?', cx-30, cy-20);
-            } else {
-                // X shape
-                ctx.moveTo(cx-len, cy-len/2); ctx.lineTo(cx+len, cy+len/2);
-                ctx.moveTo(cx-len, cy+len/2); ctx.lineTo(cx+len, cy-len/2);
-                ctx.stroke();
-                ctx.fillText(state.q.angleKnown+'°', cx, cy-40);
-                ctx.fillStyle='#fbbf24'; ctx.fillText('?', cx, cy+40);
-            }
+            const len = 100; ctx.beginPath();
+            if(state.q.subType === 'comp') { ctx.moveTo(cx-len, cy+20); ctx.lineTo(cx, cy+20); ctx.lineTo(cx, cy-len); ctx.stroke(); ctx.moveTo(cx, cy+20); ctx.lineTo(cx - Math.cos((state.q.angleKnown*Math.PI)/180)*len, cy+20 - Math.sin((state.q.angleKnown*Math.PI)/180)*len); ctx.stroke(); } 
+            else if(state.q.subType === 'supp') { ctx.moveTo(cx-len, cy); ctx.lineTo(cx+len, cy); ctx.stroke(); ctx.moveTo(cx, cy); ctx.lineTo(cx-30, cy-len); ctx.stroke(); } 
+            else { ctx.moveTo(cx-len, cy-len/2); ctx.lineTo(cx+len, cy+len/2); ctx.moveTo(cx-len, cy+len/2); ctx.lineTo(cx+len, cy-len/2); ctx.stroke(); }
+            ctx.fillText(state.q.angleKnown+'°', cx, cy-40); ctx.fillStyle='#fbbf24'; ctx.fillText('?', cx-60, cy);
         }
         else if(state.q.type === 'coord') {
-            // Draw Grid
-            ctx.strokeStyle = '#334155'; ctx.lineWidth=1;
-            const step = 20;
+            ctx.strokeStyle = '#334155'; ctx.lineWidth=1; const step = 20;
             for(let i=cx-100; i<=cx+100; i+=step) { ctx.beginPath(); ctx.moveTo(i, cy-100); ctx.lineTo(i, cy+100); ctx.stroke(); }
             for(let i=cy-100; i<=cy+100; i+=step) { ctx.beginPath(); ctx.moveTo(cx-100, i); ctx.lineTo(cx+100, i); ctx.stroke(); }
-            // Axes
-            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth=2;
-            ctx.beginPath(); ctx.moveTo(cx, cy-100); ctx.lineTo(cx, cy+100); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(cx-100, cy); ctx.lineTo(cx+100, cy); ctx.stroke();
-            
-            // Point
-            const px = cx + (state.q.x * step);
-            const py = cy - (state.q.y * step); // Canvas Y is inverted
-            ctx.fillStyle = '#ef4444';
-            ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI*2); ctx.fill();
-            
-            ctx.fillStyle = '#fff';
-            ctx.fillText(`Point (${state.q.ask==='x'?'?':state.q.x}, ${state.q.ask==='y'?'?':state.q.y})`, cx, cy+130);
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx, cy-100); ctx.lineTo(cx, cy+100); ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx-100, cy); ctx.lineTo(cx+100, cy); ctx.stroke();
+            const px = cx + (state.q.x * step); const py = cy - (state.q.y * step); 
+            ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.fillText(`(${state.q.ask==='x'?'?':state.q.x}, ${state.q.ask==='y'?'?':state.q.y})`, cx, cy+130);
         }
     }
 
-    // --- GAMEPLAY INPUT ---
     function input(k) {
         if(!state.active) return;
-        if(k==='DEL') state.input = state.input.slice(0,-1);
-        else if(state.input.length < 6) state.input += k;
-        document.getElementById('input-display').innerText = state.input || '_';
-        beep(500, 'sine', 0.05);
+        if(k==='DEL') state.input = state.input.slice(0,-1); else if(state.input.length < 6) state.input += k;
+        document.getElementById('input-display').innerText = state.input || '_'; playTone(500, 'sine', 0.05);
     }
-
     function checkAnswer() {
         if(!state.active || !state.input) return;
-        // Allow decimals? Usually S1 start with integer or simple decimal. 
-        // For simplicity, we parse float but questions mostly generate ints.
-        const val = parseFloat(state.input);
-        const diff = Math.abs(val - state.q.ans);
-        const correct = diff < 0.01; // Tolerance for float
-
+        const correct = Math.abs(parseFloat(state.input) - state.q.ans) < 0.01;
         const fb = document.getElementById('feedback-msg');
         if(correct) {
-            state.score += 100;
-            beep(800, 'triangle', 0.1);
+            state.score += 100; playTone(800, 'triangle', 0.1);
             fb.innerText="GOOD!"; fb.style.color='#4ade80'; fb.style.opacity=1;
             db.ref(`games/${state.gid}/players/${state.pid}`).update({score: state.score});
             setTimeout(()=>{ fb.style.opacity=0; generateQuestion(); }, 400);
         } else {
-            beep(150, 'sawtooth', 0.3);
-            fb.innerText="MISS"; fb.style.color='#ef4444'; fb.style.opacity=1;
+            playTone(150, 'sawtooth', 0.3); fb.innerText="MISS"; fb.style.color='#ef4444'; fb.style.opacity=1;
             setTimeout(()=>{ fb.style.opacity=0; state.input=''; document.getElementById('input-display').innerText='_'; }, 500);
         }
         document.getElementById('client-score').innerText = state.score + " PTS";
     }
-
     function showResults(list) {
         show('view-podium');
         const setPod = (id, p) => {
             if(!p) return;
-            document.getElementById(id).style.opacity=1;
-            document.getElementById(id).classList.add('podium-enter');
+            document.getElementById(id).style.opacity=1; document.getElementById(id).classList.add('podium-enter');
             document.getElementById(id.replace('podium','p')+'-name').innerText = p.name;
             document.getElementById(id.replace('podium','p')+'-avatar').innerText = p.avatar;
             document.getElementById(id.replace('podium','p')+'-score').innerText = p.score;
         };
-        setPod('podium-1', list[0]);
-        setTimeout(()=>setPod('podium-2', list[1]), 500);
-        setTimeout(()=>setPod('podium-3', list[2]), 1000);
-        
+        setPod('podium-1', list[0]); setTimeout(()=>setPod('podium-2', list[1]), 500); setTimeout(()=>setPod('podium-3', list[2]), 1000);
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-
         setTimeout(() => {
             show('view-rankings');
             const b = document.getElementById('ranking-list-body'); b.innerHTML='';
-            list.forEach((p,i) => {
-                b.innerHTML += `<tr class="border-b border-slate-700 text-slate-300"><td class="p-3">${i+1}</td><td class="p-3 flex gap-2"><span class="text-xl">${p.avatar}</span><b>${p.name}</b></td><td class="p-3 text-right font-mono">${p.score}</td></tr>`;
-            });
+            list.forEach((p,i) => { b.innerHTML += `<tr class="border-b border-slate-700 text-slate-300"><td class="p-3">${i+1}</td><td class="p-3 flex gap-2"><span class="text-xl">${p.avatar}</span><b>${p.name}</b></td><td class="p-3 text-right font-mono">${p.score}</td></tr>`; });
         }, 5000);
     }
 </script>
