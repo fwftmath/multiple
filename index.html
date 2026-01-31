@@ -2,9 +2,8 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Math Arena V27: Integer Only</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Math Arena V28: Stable Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -15,532 +14,727 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Roboto+Mono:wght@500;700&display=swap');
         
-        body { background-color: #0f172a; color: white; touch-action: none; user-select: none; font-family: 'Roboto Mono', monospace; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+        /* 防止手機下拉刷新導致退出 */
+        body { background-color: #050510; color: white; touch-action: none; user-select: none; font-family: 'Roboto Mono', monospace; overflow: hidden; overscroll-behavior-y: contain; }
         .font-display { font-family: 'Black Ops One', cursive; }
         .neon-text { text-shadow: 0 0 10px #22d3ee; }
+        .neon-gold { text-shadow: 0 0 15px #fbbf24; }
         
-        /* UI Components */
-        .btn-primary { @apply bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 md:py-4 px-8 rounded-xl shadow-[0_0_15px_rgba(8,145,178,0.5)] transform transition active:scale-95 w-full mb-4 text-xl md:text-2xl; }
-        .btn-topic { @apply bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 text-cyan-400 font-bold py-4 md:py-6 rounded-2xl shadow-lg transition-all active:scale-95 flex flex-col items-center justify-center gap-2; }
-        .lane-item { @apply w-full bg-slate-800 rounded-xl flex items-center px-3 py-2 md:px-4 md:py-3 border border-slate-600 shadow-md mb-2 transition-all; }
+        .lane-item { position: absolute; left: 0; right: 0; transition: top 0.5s ease-in-out; }
+        .progress-bar { transition: width 0.3s linear; }
         
-        #canvas-container { position: relative; width: 100%; height: 100%; flex: 1; overflow: hidden; background-color: #1e293b; border-radius: 0 0 1rem 1rem; }
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1e293b; }
-        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-        
-        @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .btn-primary { @apply bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-6 rounded-lg shadow-[0_0_15px_rgba(8,145,178,0.5)] transform transition active:scale-95 w-full mb-3; }
+        .btn-disabled { @apply bg-slate-700 text-slate-500 cursor-not-allowed shadow-none transform-none opacity-50; }
+
+        .avatar-btn { @apply text-4xl p-2 rounded-xl border-2 border-slate-700 transition-all cursor-pointer grayscale opacity-70 bg-slate-800; }
+        .avatar-btn.selected { 
+            @apply bg-slate-800 grayscale-0 opacity-100 scale-110 z-10;
+            border-color: #fbbf24; 
+            box-shadow: 0 0 20px 5px rgba(251, 191, 36, 0.6); 
+        }
+        .avatar-btn.taken { @apply opacity-20 cursor-not-allowed border-red-900 bg-slate-900 scale-90 grayscale; }
+        .kick-btn { @apply ml-3 text-red-500 hover:text-red-400 font-bold cursor-pointer px-2 py-1 rounded hover:bg-red-900/30 transition-colors; }
+
+        @keyframes podium-up { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .podium-enter { animation: podium-up 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes slide-in { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .rank-item { animation: slide-in 0.4s ease-out forwards; opacity: 0; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+        /* V28 層級修復 */
+        #view-game { z-index: 10; }
+        #game-freeze-overlay { z-index: 50; }
+        #view-podium { z-index: 100 !important; background-color: #050510; }
+        #view-rankings { z-index: 101 !important; background-color: #050510; }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col items-center justify-center bg-[#050510]">
+<body class="h-screen flex flex-col items-center justify-center bg-[#050510]">
 
-    <div id="view-menu" class="text-center p-8 w-full max-w-2xl hidden flex-col items-center z-50">
-        <h1 class="text-6xl md:text-8xl font-display italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-4 neon-text">MATH<br>ARENA</h1>
-        <div class="text-xl md:text-3xl text-slate-400 font-display mb-8 md:mb-12">HK S1 V27 (INT)</div>
-        <div id="db-status" class="text-lg text-red-500 font-bold mb-8">🔴 Connecting...</div>
-        <button onclick="setupHost()" class="btn-primary border-l-8 border-cyan-300">📡 HOST GAME</button>
+    <div id="view-menu" class="text-center space-y-6 p-4 max-w-md w-full hidden z-50">
+        <h1 class="text-6xl font-display italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2 neon-text">MATH<br>ARENA</h1>
+        <div id="db-status" class="text-xs text-red-500 font-bold mb-4">🔴 Connecting...</div>
+        <button onclick="setupHost()" class="btn-primary border-l-4 border-cyan-300 text-xl py-6">📡 HOST GAME</button>
     </div>
 
-    <div id="view-topic-select" class="w-full h-full p-4 md:p-8 hidden flex-col max-w-6xl mx-auto z-50">
-        <h2 class="text-3xl md:text-4xl text-cyan-400 font-display mb-4 md:mb-6 text-center">SELECT TOPIC</h2>
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 overflow-y-auto pb-20 flex-1">
-            <button onclick="selectTopic('area')" class="btn-topic"><span class="text-4xl md:text-5xl">📐</span><span class="text-lg md:text-xl">AREA</span></button>
-            <button onclick="selectTopic('volume')" class="btn-topic"><span class="text-4xl md:text-5xl">📦</span><span class="text-lg md:text-xl">VOLUME</span></button>
-            <button onclick="selectTopic('equation')" class="btn-topic"><span class="text-4xl md:text-5xl">⚖️</span><span class="text-lg md:text-xl">LINEAR EQ</span></button>
-            <button onclick="selectTopic('percent')" class="btn-topic"><span class="text-4xl md:text-5xl">💯</span><span class="text-lg md:text-xl">PERCENT</span></button>
-            <button onclick="selectTopic('directed')" class="btn-topic"><span class="text-4xl md:text-5xl">➕➖</span><span class="text-lg md:text-xl">DIRECTED</span></button>
-            <button onclick="selectTopic('angles')" class="btn-topic"><span class="text-4xl md:text-5xl">📏</span><span class="text-lg md:text-xl">ANGLES</span></button>
-            <button onclick="selectTopic('coord')" class="btn-topic"><span class="text-4xl md:text-5xl">🌐</span><span class="text-lg md:text-xl">COORD</span></button>
-        </div>
-    </div>
-
-    <div id="view-host-lobby" class="w-full h-full p-4 md:p-6 hidden flex-col max-w-7xl mx-auto">
-        <div class="flex justify-between items-end border-b-2 border-slate-700 pb-2 md:pb-4 mb-4 md:mb-6 shrink-0">
-            <h2 class="text-3xl md:text-4xl text-cyan-400 font-display">LOBBY</h2>
-            <div class="text-lg md:text-2xl text-yellow-400 font-bold" id="lobby-topic-display">TOPIC: ???</div>
-        </div>
-        
-        <div class="flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-8 flex-1 overflow-hidden">
-            <div class="bg-slate-900 p-4 md:p-8 rounded-2xl border-2 border-slate-700 flex flex-col items-center shadow-xl overflow-hidden h-full">
-                <div class="bg-white p-2 md:p-4 rounded-xl mb-4 shadow-inner shrink-0">
-                    <div id="qrcode" class="scale-90 md:scale-100 origin-center"></div>
-                </div>
-                <div class="text-2xl md:text-3xl font-bold text-white mb-4 shrink-0" id="join-count-display">0 PLAYERS</div>
-                <div id="player-grid" class="flex-1 w-full overflow-y-auto bg-slate-950/50 p-2 md:p-4 rounded-xl flex flex-wrap content-start gap-2 md:gap-3"></div>
+    <div id="view-host-lobby" class="w-full h-full p-6 hidden flex-col max-w-4xl mx-auto">
+        <h2 class="text-3xl text-cyan-400 font-display mb-6 border-b border-slate-700 pb-2">LOBBY</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+            <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 flex flex-col items-center relative">
+                <div class="bg-white p-2 rounded-lg mb-4"><div id="qrcode"></div></div>
+                <div class="text-2xl font-bold text-white mb-2" id="join-count-display">0 PLAYERS</div>
+                <div id="player-grid" class="mt-4 flex flex-wrap justify-center gap-2 w-full max-h-60 overflow-y-auto content-start"></div>
             </div>
-
-            <div class="bg-slate-900 p-4 md:p-8 rounded-2xl border-2 border-slate-700 flex flex-col shadow-xl h-auto md:h-full justify-center shrink-0">
-                <div class="mb-4 md:mb-8">
-                    <label class="block text-slate-400 text-base md:text-lg mb-2 font-bold">MODE</label>
-                    <div class="grid grid-cols-2 gap-3 md:gap-4">
-                        <button class="border-2 border-slate-600 text-slate-300 py-3 md:py-4 rounded-xl text-lg md:text-xl font-bold" onclick="setMode('score')">🏁 Score</button>
-                        <button class="border-2 border-cyan-500 text-cyan-400 bg-cyan-900/30 py-3 md:py-4 rounded-xl text-lg md:text-xl font-bold" onclick="setMode('time')">⏱️ Time</button>
+            <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 flex flex-col">
+                <div class="mb-6">
+                    <label class="block text-slate-400 text-sm mb-2 font-bold">MODE</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="btn-mode-score" class="border border-slate-600 text-slate-400 py-2 rounded" onclick="setMode('score')">🏁 Score Race</button>
+                        <button id="btn-mode-time" class="border border-cyan-500 text-cyan-400 bg-cyan-900/50 py-2 rounded" onclick="setMode('time')">⏱️ Timer Mode</button>
                     </div>
                 </div>
-                <div class="mb-6 md:mb-8">
-                    <label class="block text-slate-400 text-base md:text-lg mb-2 font-bold">LIMIT</label>
-                    <input type="range" id="setting-slider" min="20" max="180" step="10" value="60" class="w-full h-4 bg-slate-700 rounded-lg cursor-pointer accent-cyan-500" oninput="updateSetting(this.value)">
-                    <div class="text-right text-cyan-400 text-3xl md:text-4xl font-bold mt-2 md:mt-4" id="setting-value">60 SEC</div>
+                <div class="mb-6">
+                    <label class="block text-slate-400 text-sm mb-2 font-bold" id="setting-label">TIME LIMIT</label>
+                    <input type="range" id="setting-slider" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer accent-cyan-500">
+                    <div class="text-right text-cyan-400 text-2xl font-bold mt-2" id="setting-value">60 SEC</div>
                 </div>
-                <button id="btn-host-start" onclick="hostStartGame()" class="btn-primary mt-auto bg-slate-700 text-slate-500 cursor-not-allowed opacity-50 text-xl md:text-3xl py-4 md:py-8" disabled>⏳ WAIT</button>
+                <button id="btn-host-start" onclick="hostStartGame()" class="btn-primary mt-auto bg-gradient-to-r from-green-500 to-emerald-600 text-2xl py-4" disabled>⏳ WAIT FOR PLAYERS (0/2)</button>
             </div>
         </div>
     </div>
 
-    <div id="view-host-game" class="w-full h-full p-4 md:p-6 hidden flex-col bg-slate-950 relative">
-        <div class="flex justify-between items-center mb-4 md:mb-6 px-4 py-2 md:px-6 md:py-4 bg-slate-900 rounded-2xl border-2 border-slate-700 shrink-0 shadow-lg">
-            <div class="font-display text-2xl md:text-4xl italic text-slate-300">LIVE</div>
-            <div class="text-5xl md:text-7xl font-mono font-bold text-cyan-400 neon-text" id="host-timer-display">00:00</div>
+    <div id="view-host-game" class="w-full h-full p-4 hidden flex-col bg-slate-950 relative">
+        <div class="flex justify-between items-center mb-4 px-4 py-2 bg-slate-900/80 rounded-lg border border-slate-700">
+            <div class="font-display text-2xl italic text-slate-300">LIVE RANKING</div>
+            <div class="text-4xl font-mono font-bold text-cyan-400 neon-text" id="host-timer-display">00:00</div>
+            <div class="text-sm text-slate-500 font-bold" id="host-target-display">TIME LEFT</div>
         </div>
-        
-        <div class="flex-1 w-full overflow-y-auto px-2 md:px-4 pb-32 space-y-2 bg-slate-900/30 rounded-xl border border-slate-800" id="lanes-container" style="-webkit-overflow-scrolling: touch;"></div>
-        
-        <div id="host-status-msg" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center pointer-events-none opacity-0 transition-opacity duration-500 z-50">
-            <span class="bg-black/90 text-yellow-400 px-8 py-4 md:px-12 md:py-6 rounded-full text-3xl md:text-5xl font-bold border-4 border-yellow-500 shadow-2xl backdrop-blur-sm">🛑 TIME UP</span>
+        <div class="flex-1 relative mx-4 rounded-xl bg-slate-900/30 border border-slate-800 overflow-y-auto" id="lanes-container"></div>
+        <div id="host-status-msg" class="absolute bottom-10 left-0 w-full text-center pointer-events-none opacity-0 transition-opacity duration-500">
+            <span class="bg-black/80 text-yellow-400 px-6 py-2 rounded-full text-xl font-bold border border-yellow-500 shadow-lg">🛑 TIME UP - CALCULATING...</span>
         </div>
     </div>
 
-    <div id="view-join" class="text-center p-8 max-w-xl w-full hidden z-50">
-        <h2 class="text-3xl font-bold mb-8 text-cyan-400">ENTER NAME</h2>
-        <input type="text" id="player-name" placeholder="YOUR NAME" maxlength="8" class="w-full p-6 rounded-xl bg-slate-900 border-4 border-slate-700 text-white text-center text-3xl mb-8 focus:border-cyan-500 uppercase font-display outline-none">
+    <div id="view-join" class="text-center p-6 max-w-md w-full hidden z-50">
+        <h2 class="text-2xl font-bold mb-6 text-cyan-400">YOUR NAME</h2>
+        <input type="text" id="player-name" placeholder="NAME" maxlength="8" class="w-full p-4 rounded bg-slate-900 border-2 border-slate-700 text-white text-center text-xl mb-4 focus:border-cyan-500 uppercase font-display">
         <button onclick="goToAvatarSelect()" class="btn-primary">NEXT</button>
     </div>
 
-    <div id="view-avatar-select" class="text-center p-8 max-w-2xl w-full hidden z-50 flex-col">
-        <h2 class="text-3xl font-bold mb-6 text-cyan-400">CHOOSE AVATAR</h2>
-        <div class="grid grid-cols-4 gap-4 md:gap-6 mb-10" id="avatar-grid"></div>
+    <div id="view-avatar-select" class="text-center p-6 max-w-md w-full hidden z-50 flex-col">
+        <h2 class="text-xl font-bold mb-4 text-cyan-400">SELECT AVATAR</h2>
+        <p class="text-xs text-slate-500 mb-4">Gray icons are taken</p>
+        <div class="grid grid-cols-4 gap-4 mb-8" id="avatar-grid"></div>
         <button onclick="confirmJoin()" class="btn-primary" id="btn-join-confirm" disabled>READY</button>
+        <button onclick="showView('view-join')" class="text-slate-500 underline mt-2">BACK</button>
     </div>
 
-    <div id="view-student-wait" class="text-center p-8 w-full hidden z-50">
-        <div class="text-8xl mb-6 animate-bounce">⏳</div>
-        <h2 class="text-4xl font-bold text-white mb-4">WAITING...</h2>
-        <div class="mt-8 p-8 bg-slate-900 rounded-2xl border-2 border-slate-700 flex flex-col items-center shadow-2xl">
-            <div id="my-final-avatar" class="text-8xl mb-4"></div>
-            <span id="my-final-name" class="font-bold text-cyan-400 text-3xl"></span>
-            <div id="client-topic-wait" class="text-xl text-slate-500 mt-4 font-mono"></div>
+    <div id="view-student-wait" class="text-center p-6 w-full hidden z-50">
+        <div class="text-6xl mb-4 animate-bounce">⏳</div>
+        <h2 class="text-2xl font-bold text-white mb-2">WAITING...</h2>
+        <div class="mt-8 p-4 bg-slate-900 rounded border border-slate-700 flex flex-col items-center">
+            <div id="my-final-avatar" class="text-5xl mb-2"></div>
+            <span id="my-final-name" class="font-bold text-cyan-400"></span>
         </div>
     </div>
 
     <div id="view-game" class="w-full h-full flex flex-col hidden relative bg-slate-900">
-        <div id="game-freeze-overlay" class="absolute inset-0 bg-slate-950/95 z-40 hidden flex flex-col items-center justify-center backdrop-blur">
-            <div class="text-8xl mb-6">🛑</div>
-            <h2 class="text-5xl font-display text-red-500 mb-2 neon-text">FINISHED</h2>
-            <div class="text-slate-400 text-xl">Look at Host Screen</div>
+        <div id="game-freeze-overlay" class="absolute inset-0 bg-slate-950/95 z-40 hidden flex flex-col items-center justify-center">
+            <div class="text-6xl mb-4">🛑</div>
+            <h2 class="text-4xl font-display text-red-500 mb-2 neon-text">TIME UP!</h2>
+            <p class="text-white animate-pulse">Calculating Results...</p>
         </div>
-        
-        <div class="h-16 md:h-20 bg-slate-950 border-b-2 border-slate-800 flex justify-between items-center px-4 md:px-6 shrink-0 shadow-lg z-20">
-            <div class="text-cyan-400 font-bold text-2xl md:text-3xl" id="client-score">0 PTS</div>
-            <div class="text-slate-400 font-mono text-2xl md:text-3xl" id="client-timer-display">--:--</div>
+        <div class="h-12 bg-slate-950 border-b border-slate-800 flex justify-between items-center px-4">
+            <div class="text-cyan-400 font-bold" id="client-score">0 PTS</div>
+            <div class="text-slate-400 font-mono" id="client-timer-display">--:--</div>
         </div>
-        
-        <div id="canvas-container" class="shadow-inner">
+        <div class="flex-1 relative flex justify-center items-center" id="canvas-container">
             <canvas id="gameCanvas"></canvas>
-            <div id="feedback-msg" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-8xl font-black opacity-0 pointer-events-none z-30 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)] stroke-black"></div>
+            <div id="feedback-msg" class="absolute top-1/3 left-1/2 -translate-x-1/2 text-4xl font-black opacity-0 pointer-events-none z-30"></div>
         </div>
-        
-        <div class="bg-slate-900 border-t-2 border-slate-800 p-2 md:p-3 h-[45%] md:h-[40%] grid grid-rows-[auto_1fr] gap-2 md:gap-3 z-10 shrink-0">
-            <div class="bg-slate-800 rounded-xl p-2 md:p-4 flex flex-col justify-center items-center relative border-2 border-slate-700 shadow-inner">
-                <div id="input-display" class="text-4xl md:text-5xl font-mono font-bold tracking-[0.2em] text-white min-h-[3rem]">_</div>
-                <div id="hint-display" class="text-lg md:text-xl text-yellow-500/90 font-mono mt-1 font-bold"></div>
+        <div class="bg-slate-900 border-t border-slate-800 p-2 h-[45vh] grid grid-rows-[auto_1fr] gap-2 z-10 shrink-0">
+            <div class="bg-slate-800/50 rounded p-2 flex flex-col justify-center items-center relative border border-slate-700">
+                <div id="input-display" class="text-3xl font-mono font-bold tracking-[0.5em] text-white">_</div>
+                <div id="hint-display" class="text-xs text-yellow-500/80 font-mono"></div>
             </div>
-            <div class="grid grid-cols-3 gap-2 h-full pb-safe" id="keypad-grid"></div>
+            <div class="grid grid-cols-3 gap-1 h-full pb-safe">
+                <button class="bg-slate-800 text-cyan-100 rounded text-2xl font-bold active:bg-cyan-700" onclick="input('7')">7</button>
+                <button class="bg-slate-800 text-cyan-100 rounded text-2xl font-bold active:bg-cyan-700" onclick="input('8')">8</button>
+                <button class="bg-slate-800 text-cyan-100 rounded text-2xl font-bold active:bg-cyan-700" onclick="input('9')">9</button>
+                <button class="bg-slate-800 text-cyan-100 rounded text-2xl font-bold active:bg-cyan-700" onclick="input('4')">4</button>
+                <button class="bg-slate-800 text-cyan-100 rounded text-2xl font-bold active:bg-cyan-700" onclick="input('5')">5</button>
+                <button class="bg-slate-800 text-cyan-100 rounded text-2xl font-bold active:bg-cyan-700" onclick="input('6')">6</button>
+                <button class="bg-slate-800 text-cyan-100 rounded text-2xl font-bold active:bg-cyan-700" onclick="input('1')">1</button>
+                <button class="bg-slate-800 text-cyan-100 rounded text-2xl font-bold active:bg-cyan-700" onclick="input('2')">2</button>
+                <button class="bg-slate-800 text-cyan-100 rounded text-2xl font-bold active:bg-cyan-700" onclick="input('3')">3</button>
+                <button class="bg-rose-900/40 text-rose-500 rounded font-bold active:bg-rose-900" onclick="input('DEL')">DEL</button>
+                <button class="bg-slate-800 text-cyan-100 rounded text-2xl font-bold active:bg-cyan-700" onclick="input('0')">0</button>
+                <button class="bg-gradient-to-b from-emerald-600 to-emerald-800 text-white rounded font-bold text-xl active:translate-y-1" onclick="checkAnswer()">GO</button>
+            </div>
         </div>
     </div>
 
-    <div id="view-podium" class="text-center w-full hidden z-[200] bg-slate-950 absolute inset-0 flex flex-col items-center justify-center p-4">
-        <h1 class="text-5xl md:text-7xl font-display text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 mb-8 md:mb-16 neon-text z-10">CHAMPIONS</h1>
-        <div class="flex items-end justify-center w-full max-w-6xl z-10 gap-2 md:gap-4" id="podium-container">
-            <div id="podium-2" class="flex flex-col items-center w-1/4 opacity-0 transform translate-y-full transition-all duration-700">
-                <div class="text-4xl md:text-6xl mb-2 md:mb-4" id="p2-avatar"></div>
-                <div class="text-white text-sm md:text-xl font-bold mb-1 md:mb-2 truncate w-full" id="p2-name"></div>
-                <div class="w-full h-28 md:h-40 bg-slate-700 rounded-t-xl border-t-8 border-slate-400 flex items-end justify-center pb-4 shadow-2xl">
-                    <span class="text-4xl md:text-5xl font-black text-slate-500/50">2</span>
-                </div>
-                <div class="text-cyan-400 font-bold text-lg md:text-2xl mt-2" id="p2-score"></div>
+    <div id="view-podium" class="text-center w-full hidden z-[100] bg-slate-950 absolute inset-0 flex flex-col items-center justify-center">
+        <h1 class="text-5xl font-display text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 mb-12 neon-gold z-10">CHAMPIONS</h1>
+        <div class="flex items-end justify-center w-full max-w-4xl px-2 z-10" id="podium-container">
+            <div id="podium-2" class="flex flex-col items-center mx-1 md:mx-4 opacity-0" style="visibility: hidden;">
+                <div class="text-4xl mb-2" id="p2-avatar"></div>
+                <div class="text-white font-bold text-sm truncate w-20 md:w-32" id="p2-name"></div>
+                <div class="w-20 md:w-32 h-32 bg-slate-700 rounded-t-lg border-t-4 border-slate-400 flex items-end justify-center pb-2 shadow-lg"><span class="text-3xl font-black text-slate-500">2</span></div>
+                <div class="mt-2 text-cyan-400 font-bold" id="p2-score"></div>
             </div>
-            
-            <div id="podium-1" class="flex flex-col items-center w-1/3 opacity-0 transform translate-y-full transition-all duration-700 z-20">
-                <div class="text-7xl md:text-9xl mb-4 md:mb-6 animate-bounce" id="p1-avatar"></div>
-                <div class="text-yellow-400 font-bold text-xl md:text-3xl mb-1 md:mb-2 neon-text truncate w-full" id="p1-name"></div>
-                <div class="w-full h-48 md:h-64 bg-gradient-to-b from-yellow-600 to-yellow-800 rounded-t-xl border-t-8 border-yellow-400 flex items-end justify-center pb-6 shadow-2xl">
-                    <span class="text-6xl md:text-7xl font-black text-yellow-900/40">1</span>
-                </div>
-                <div class="text-yellow-400 text-2xl md:text-4xl font-black mt-2" id="p1-score"></div>
+            <div id="podium-1" class="flex flex-col items-center mx-1 md:mx-4 opacity-0 z-20" style="visibility: hidden;">
+                <div class="text-7xl mb-2 animate-bounce" id="p1-avatar"></div>
+                <div class="text-yellow-400 font-bold text-xl neon-gold truncate w-24 md:w-40" id="p1-name"></div>
+                <div class="w-24 md:w-40 h-48 bg-gradient-to-b from-yellow-600 to-yellow-800 rounded-t-lg border-t-4 border-yellow-400 flex items-end justify-center pb-4 shadow-[0_0_30px_rgba(234,179,8,0.4)]"><span class="text-5xl font-black text-yellow-900/50">1</span></div>
+                <div class="mt-2 text-yellow-400 text-2xl font-black" id="p1-score"></div>
             </div>
-            
-            <div id="podium-3" class="flex flex-col items-center w-1/4 opacity-0 transform translate-y-full transition-all duration-700">
-                <div class="text-4xl md:text-6xl mb-2 md:mb-4" id="p3-avatar"></div>
-                <div class="text-white text-sm md:text-xl font-bold mb-1 md:mb-2 truncate w-full" id="p3-name"></div>
-                <div class="w-full h-20 md:h-32 bg-orange-900 rounded-t-xl border-t-8 border-orange-700 flex items-end justify-center pb-4 shadow-2xl">
-                    <span class="text-4xl md:text-5xl font-black text-orange-900/50">3</span>
-                </div>
-                <div class="text-cyan-400 font-bold text-lg md:text-2xl mt-2" id="p3-score"></div>
+            <div id="podium-3" class="flex flex-col items-center mx-1 md:mx-4 opacity-0" style="visibility: hidden;">
+                <div class="text-4xl mb-2" id="p3-avatar"></div>
+                <div class="text-white font-bold text-sm truncate w-20 md:w-32" id="p3-name"></div>
+                <div class="w-20 md:w-32 h-24 bg-orange-900 rounded-t-lg border-t-4 border-orange-700 flex items-end justify-center pb-2 shadow-lg"><span class="text-3xl font-black text-orange-900/50">3</span></div>
+                <div class="mt-2 text-cyan-400 font-bold" id="p3-score"></div>
             </div>
         </div>
     </div>
-    
-    <div id="view-rankings" class="w-full h-full hidden z-[201] bg-slate-950 absolute inset-0 flex flex-col p-6 md:p-10">
-        <h2 class="text-3xl md:text-5xl font-display text-cyan-400 text-center mb-6 md:mb-10">FINAL STANDINGS</h2>
-        <div class="flex-1 overflow-y-auto bg-slate-900/80 rounded-2xl border-2 border-slate-800 p-4 md:p-6 max-w-4xl mx-auto w-full shadow-2xl">
-            <table class="w-full text-left border-collapse text-xl md:text-2xl">
+
+    <div id="view-rankings" class="w-full h-full hidden z-[101] bg-slate-950 absolute inset-0 flex flex-col p-6">
+        <h2 class="text-3xl font-display text-cyan-400 text-center mb-6">FINAL STANDINGS</h2>
+        <div class="flex-1 overflow-y-auto bg-slate-900/50 rounded-xl border border-slate-800 p-4 max-w-2xl mx-auto w-full">
+            <table class="w-full text-left border-collapse">
+                <thead class="text-slate-500 border-b border-slate-700">
+                    <tr><th class="p-2">#</th><th class="p-2">PLAYER</th><th class="p-2 text-right">SCORE</th></tr>
+                </thead>
                 <tbody id="ranking-list-body"></tbody>
             </table>
         </div>
-        <div class="mt-6 md:mt-8 text-center"><button onclick="location.reload()" class="btn-primary max-w-md bg-slate-700 text-lg md:text-xl">🏠 RETURN HOME</button></div>
+        <div id="host-restart-area" class="mt-4 text-center hidden">
+            <button onclick="backToMenu()" class="btn-primary max-w-xs bg-slate-700 hover:bg-slate-600 border border-slate-500">🏠 NEW GAME</button>
+        </div>
     </div>
 
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyAYnQB2o5cPn42RiNAik7537ihduICJwdQ", authDomain: "fwftmath.firebaseapp.com", projectId: "fwftmath", storageBucket: "fwftmath.firebasestorage.app", messagingSenderId: "70090299689", appId: "1:70090299689:web:ae300db1f79a3eda62bf38" };
-    let app, db;
-    try { app = firebase.initializeApp(firebaseConfig); db = firebase.database(); 
-        db.ref(".info/connected").on("value", s => document.getElementById('db-status').innerText = s.val()?"🟢 ONLINE":"🟠 CONNECTING...");
-    } catch(e){console.error("FB Err",e);}
-
-    const AVATARS = ['🐯','🐰','🦁','🦄','🦖','👽','🤖','🐼','🦊','🐨','🐮','🐷'];
-    const AUDIO = new (window.AudioContext||window.webkitAudioContext)();
-    
-    function playTone(f,t,d) {
-        if(AUDIO.state==='suspended')AUDIO.resume();
-        const o=AUDIO.createOscillator(),g=AUDIO.createGain();
-        o.type=t; o.frequency.value=f;
-        o.connect(g); g.connect(AUDIO.destination);
-        o.start(); g.gain.exponentialRampToValueAtTime(0.001,AUDIO.currentTime+d);
-        o.stop(AUDIO.currentTime+d);
-    }
-    function playFanfare() {
-        if(AUDIO.state==='suspended')AUDIO.resume();
-        const now = AUDIO.currentTime;
-        [523.25, 659.25, 783.99, 1046.50].forEach((f,i) => {
-            const o=AUDIO.createOscillator(),g=AUDIO.createGain();
-            o.type=i===3?'square':'triangle'; o.frequency.value=f;
-            o.start(now + i*0.15); g.gain.exponentialRampToValueAtTime(0.001, now + i*0.15 + (i===3?1.5:0.3));
-            o.connect(g); g.connect(AUDIO.destination);
-            o.stop(now + i*0.15 + (i===3?1.5:0.3));
-        });
-    }
-
-    let state = {
-        gid: new URLSearchParams(location.search).get('gid'), 
-        pid: 'p_'+Math.random().toString(36).substr(2,8),
-        name: 'Guest', av: '', score: 0, active: false,
-        settings: { mode: 'time', target: 60, topic: 'area' },
-        q: null, input: '', lastBeep: -1
+    const firebaseConfig = {
+        apiKey: "AIzaSyAYnQB2o5cPn42RiNAik7537ihduICJwdQ",
+        authDomain: "fwftmath.firebaseapp.com",
+        projectId: "fwftmath",
+        storageBucket: "fwftmath.firebasestorage.app",
+        messagingSenderId: "70090299689",
+        appId: "1:70090299689:web:ae300db1f79a3eda62bf38"
     };
 
-    const views = ['view-menu','view-topic-select','view-host-lobby','view-host-game','view-join','view-avatar-select','view-student-wait','view-game','view-podium','view-rankings'];
-    function show(id) { 
-        views.forEach(v=>document.getElementById(v).classList.add('hidden')); 
-        const el = document.getElementById(id);
-        el.classList.remove('hidden'); 
-        if(id.includes('host')||id.includes('flex')) el.classList.add('flex');
-        if(id==='view-game') { resize(); setTimeout(resize, 200); }
-    }
-    window.onload=()=>state.gid?show('view-join'):show('view-menu');
+    let app, db;
+    
+    // --- V28 關鍵修正：身份鎖定 ---
+    const savedPid = sessionStorage.getItem('ma_pid');
+    const savedName = sessionStorage.getItem('ma_name');
+    const savedAvatar = sessionStorage.getItem('ma_avatar');
+    
+    let state = {
+        role: 'none', 
+        gameId: new URLSearchParams(window.location.search).get('gid'),
+        // 優先使用舊身份，否則才生成新的
+        playerId: savedPid || ('p_' + Math.random().toString(36).substr(2,6)),
+        playerName: savedName || 'Guest', 
+        avatar: savedAvatar || '',
+        score: 0, 
+        active: false,
+        settings: { mode: 'time', target: 60 },
+        q: null, input: '', endTime: 0,
+        hostLoop: null
+    };
 
-    function setupHost() { if(!db)return; AUDIO.resume(); show('view-topic-select'); }
-    function selectTopic(t) {
-        state.settings.topic = t;
-        const ref = db.ref('games').push(); state.gid = ref.key;
-        ref.set({ status: 'lobby', settings: state.settings });
-        show('view-host-lobby');
-        document.getElementById('lobby-topic-display').innerText = "TOPIC: " + t.toUpperCase();
-        new QRCode(document.getElementById("qrcode"), { text: `${location.origin}${location.pathname}?gid=${state.gid}`, width:128, height:128 });
-        
-        db.ref(`games/${state.gid}/players`).on('value', snap => {
-            const grid=document.getElementById('player-grid'); grid.innerHTML=''; 
-            let c=0; 
-            if(snap.exists()) {
-                snap.forEach(x => { c++; grid.innerHTML += `<div class="bg-slate-800 px-3 py-1 md:px-4 md:py-2 rounded-lg border border-slate-600 flex gap-2 items-center shadow"><span class="text-2xl md:text-3xl">${x.val().avatar}</span><span class="font-bold text-base md:text-xl text-white">${x.val().name}</span></div>`; });
-            }
-            document.getElementById('join-count-display').innerText = `${c} PLAYERS`;
-            const btn = document.getElementById('btn-host-start');
-            btn.disabled = c < 1;
-            btn.className = c<1 ? "btn-primary mt-auto bg-slate-700 opacity-50 text-xl md:text-3xl py-4 md:py-8" : "btn-primary mt-auto bg-green-600 hover:bg-green-500 text-xl md:text-3xl py-4 md:py-8 shadow-green-900/50";
-            btn.innerText = c<1 ? `⏳ WAIT (${c})` : "🚀 START GAME";
-        });
-        setMode('time');
+    let localTimerInterval = null;
+    const views = ['view-menu','view-host-lobby','view-host-game','view-join','view-avatar-select','view-student-wait','view-game','view-podium','view-rankings'];
+    const AVATAR_OPTIONS = ['🐯','🐰','🦁','🦄','🦖','👽','🤖','🐼','🦊','🐨','🐮','🐷'];
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTone(f,t,d){if(audioCtx.state==='suspended')audioCtx.resume();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=t;o.frequency.value=f;o.connect(g);g.connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+d);o.stop(audioCtx.currentTime+d);}
+
+    function showView(id) {
+        views.forEach(v => document.getElementById(v).classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        if(id.includes('host') || id === 'view-avatar-select' || id === 'view-rankings') document.getElementById(id).classList.add('flex');
+        if(id === 'view-game') resizeCanvas();
     }
-    function setMode(m) { state.settings.mode=m; updateSetting(document.getElementById('setting-slider').value); }
-    function updateSetting(v) {
-        state.settings.target=parseInt(v);
-        document.getElementById('setting-value').innerText = state.settings.mode==='score' ? v+" PTS" : v+" SEC";
-        if(state.gid) db.ref(`games/${state.gid}/settings`).update(state.settings);
+
+    // --- V28 關鍵修正：自動重連 ---
+    window.addEventListener('load', () => {
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            db.ref(".info/connected").on("value", (snap) => {
+                const statusEl = document.getElementById('db-status');
+                if(statusEl) {
+                    statusEl.innerText = snap.val() ? "🟢 ONLINE" : "🟠 CONNECTING...";
+                    statusEl.className = snap.val() ? "text-xs text-green-400 font-bold mb-4" : "text-xs text-orange-400 font-bold mb-4";
+                }
+            });
+
+            // 檢查是否是斷線重連
+            if (state.gameId && savedPid) {
+                console.log("♻️ 恢復 V28 連線中...");
+                confirmJoin(true); // true = 重連模式
+            } else if (state.gameId) {
+                showView('view-join');
+            } else {
+                showView('view-menu');
+            }
+
+        } catch (e) { console.error(e); }
+    });
+
+    // ================= HOST LOGIC =================
+    function setupHost() {
+        if (!db) return alert("Database not ready.");
+        state.role = 'host';
+        showView('view-host-lobby');
+        const slider = document.getElementById('setting-slider');
+        slider.oninput = () => updateSettingsDisplay();
+        setMode('time');
+
+        const ref = db.ref('games').push();
+        state.gameId = ref.key;
+        ref.set({ status: 'lobby', createdAt: Date.now(), settings: state.settings });
+        
+        const qrDiv = document.getElementById("qrcode");
+        qrDiv.innerHTML = "";
+        new QRCode(qrDiv, { text: `${location.origin}${location.pathname}?gid=${state.gameId}`, width: 128, height: 128 });
+        
+        db.ref(`games/${state.gameId}/players`).on('value', snap => {
+            const grid = document.getElementById('player-grid');
+            grid.innerHTML = '';
+            let count = 0;
+            snap.forEach(c => {
+                count++;
+                const p = c.val();
+                grid.innerHTML += `<div class="bg-slate-800 px-3 py-2 rounded-lg border border-slate-600 text-sm flex items-center gap-2 animate-[pop_0.3s]"><span class="text-xl">${p.avatar}</span><span class="font-bold text-white">${p.name}</span><button onclick="kickPlayer('${c.key}')" class="kick-btn">❌</button></div>`;
+            });
+            document.getElementById('join-count-display').innerText = `${count} PLAYERS`;
+            
+            const startBtn = document.getElementById('btn-host-start');
+            if(count < 2) {
+                startBtn.disabled = true;
+                startBtn.innerHTML = `⏳ WAIT FOR PLAYERS (${count}/2)`;
+                startBtn.className = "btn-primary mt-auto bg-slate-700 text-slate-500 cursor-not-allowed shadow-none transform-none opacity-50";
+            } else {
+                startBtn.disabled = false;
+                startBtn.innerHTML = "🚀 START GAME";
+                startBtn.className = "btn-primary mt-auto bg-gradient-to-r from-green-500 to-emerald-600 text-2xl py-4";
+            }
+        });
+    }
+
+    window.kickPlayer = (pid) => { if(confirm("Kick player?")) db.ref(`games/${state.gameId}/players/${pid}`).remove(); };
+
+    function updateSettingsDisplay() {
+        const slider = document.getElementById('setting-slider');
+        state.settings.target = parseInt(slider.value);
+        document.getElementById('setting-value').innerText = state.settings.mode==='score' ? state.settings.target+" PTS" : state.settings.target+" SEC";
+        if(state.gameId) db.ref(`games/${state.gameId}/settings`).update(state.settings);
+    }
+
+    function setMode(mode) {
+        state.settings.mode = mode;
+        const slider = document.getElementById('setting-slider');
+        document.getElementById('btn-mode-score').className = mode==='score' ? "border border-cyan-500 text-cyan-400 bg-cyan-900/50 py-2 rounded" : "border border-slate-600 text-slate-400 py-2 rounded";
+        document.getElementById('btn-mode-time').className = mode==='time' ? "border border-cyan-500 text-cyan-400 bg-cyan-900/50 py-2 rounded" : "border border-slate-600 text-slate-400 py-2 rounded";
+        if(mode==='score') { 
+            document.getElementById('setting-label').innerText="TARGET SCORE"; slider.min=500; slider.max=5000; slider.step=100; slider.value=1000; 
+        } else { 
+            document.getElementById('setting-label').innerText="TIME LIMIT"; slider.min=30; slider.max=300; slider.step=10; slider.value=60; 
+        }
+        updateSettingsDisplay();
     }
 
     function hostStartGame() {
-        const end = state.settings.mode==='time' ? Date.now()+(state.settings.target*1000) : 0;
-        db.ref(`games/${state.gid}`).update({ status: 'playing', startTime: Date.now(), endTime: end });
-        show('view-host-game');
+        const count = parseInt(document.getElementById('join-count-display').innerText);
+        if(count < 2) return alert("Need at least 2 players!");
+
+        const updateData = { status: 'playing', startTime: Date.now() };
+        if(state.settings.mode === 'time') {
+            state.endTime = Date.now() + (state.settings.target * 1000);
+            updateData.endTime = state.endTime;
+        }
+        db.ref(`games/${state.gameId}`).update(updateData);
+        showView('view-host-game');
+        document.getElementById('host-target-display').innerText = state.settings.mode==='score' ? `TARGET: ${state.settings.target}` : "TIME LEFT";
+        startLocalTicker(state.settings.mode === 'time' ? state.endTime : null, 'host-timer-display');
         
-        const timerLoop = setInterval(() => {
-            if(state.settings.mode==='time') {
-                const left = Math.ceil((end - Date.now())/1000);
-                document.getElementById('host-timer-display').innerText = left<=0 ? "00:00" : `${Math.floor(left/60)}:${(left%60).toString().padStart(2,'0')}`;
-                if(left <= 5 && left > 0 && left !== state.lastBeep) {
-                    state.lastBeep = left; playTone(600 + (5-left)*200, 'sawtooth', 0.1);
+        if (state.hostLoop) clearInterval(state.hostLoop);
+        state.hostLoop = setInterval(hostGameLoopTick, 1000);
+        
+        monitorGameUpdates();
+    }
+
+    function hostGameLoopTick() {
+        if (state.settings.mode === 'time') {
+            if (Date.now() >= state.endTime) {
+                clearInterval(state.hostLoop);
+                executeGameFinish();
+            }
+        }
+    }
+
+    function monitorGameUpdates() {
+        const gameRef = db.ref(`games/${state.gameId}`);
+        gameRef.on('value', snap => {
+            const game = snap.val();
+            if(!game) return;
+
+            if (game.status === 'results') {
+                showPodiumSequence(game.finalStandings);
+                gameRef.off(); 
+                if (state.hostLoop) clearInterval(state.hostLoop);
+            }
+
+            if(game.players) {
+                const players = Object.values(game.players).sort((a,b)=>(b.score||0)-(a.score||0));
+                if (state.role==='host' && game.status==='playing' && game.settings.mode==='score' && players[0].score >= game.settings.target) {
+                    executeGameFinish();
                 }
-                if(left <= 0) { clearInterval(timerLoop); finishGame(); }
-            } else { document.getElementById('host-timer-display').innerText = "RACE"; }
-        }, 500);
-
-        db.ref(`games/${state.gid}/players`).on('value', snap => {
-            const arr = []; 
-            if(snap.exists()) snap.forEach(c => arr.push(c.val()));
-            arr.sort((a,b) => (b.score||0)-(a.score||0));
-            
-            const max = state.settings.mode==='score' ? state.settings.target : Math.max(state.settings.target*10, (arr[0]?.score||0)*1.2, 1);
-            if(state.settings.mode==='score' && arr[0]?.score >= state.settings.target) { clearInterval(timerLoop); finishGame(); }
-
-            const html = arr.map(p => {
-                const width = Math.min(100, (p.score/max)*100);
-                return `
-                <div class="lane-item group">
-                    <div class="w-8 md:w-12 text-2xl md:text-4xl mr-2 md:mr-4">${p.avatar}</div>
-                    <div class="w-20 md:w-32 truncate font-bold text-base md:text-xl text-slate-300">${p.name}</div>
-                    <div class="flex-1 h-4 md:h-6 bg-slate-900 rounded-full mx-2 md:mx-4 border border-slate-700 overflow-hidden relative">
-                        <div class="h-full bg-cyan-500 shadow-[0_0_15px_#06b6d4] transition-all duration-500" style="width:${width}%"></div>
-                    </div>
-                    <div class="w-16 md:w-24 text-right font-mono font-bold text-cyan-400 text-xl md:text-3xl">${p.score}</div>
-                </div>`;
-            }).join('');
-            
-            document.getElementById('lanes-container').innerHTML = html;
+                renderLanes(players, game.settings.target, game.settings.mode);
+            }
         });
     }
 
-    function finishGame() {
-        db.ref(`games/${state.gid}`).update({ status: 'finished' });
-        document.getElementById('host-status-msg').style.opacity=1;
-        playTone(300, 'sawtooth', 1.0);
+    function executeGameFinish() {
+        db.ref(`games/${state.gameId}`).update({ status: 'finished' });
+        document.getElementById('host-status-msg').style.opacity = 1;
+        if(localTimerInterval) clearInterval(localTimerInterval);
+
         setTimeout(() => {
-            db.ref(`games/${state.gid}/players`).once('value', s => {
-                const arr=[]; s.forEach(c=>arr.push(c.val()));
-                arr.sort((a,b)=>b.score-a.score);
-                db.ref(`games/${state.gid}`).update({ status: 'results', finalStandings: arr });
-                showResults(arr);
+            db.ref(`games/${state.gameId}/players`).once('value', s => {
+                const arr = [];
+                s.forEach(c => {
+                    const p = c.val();
+                    p.score = parseInt(p.score) || 0;
+                    arr.push(p);
+                });
+                arr.sort((a,b) => b.score - a.score);
+                db.ref(`games/${state.gameId}`).update({ status: 'results', finalStandings: arr });
             });
-        }, 2000);
+        }, 1500);
     }
 
+    function renderLanes(players, target, mode) {
+        const container = document.getElementById('lanes-container');
+        const maxScore = mode==='score' ? target : Math.max(target*5, (players[0].score||0)*1.2);
+        players.forEach((p, index) => {
+            let el = document.getElementById(`lane-${p.name}`);
+            const pct = Math.min(100, ((p.score||0)/maxScore)*100);
+            if (!el) {
+                el = document.createElement('div');
+                el.id = `lane-${p.name}`;
+                el.className = 'lane-item h-12 bg-slate-800/80 rounded flex items-center px-2 border border-slate-700 shadow mx-2';
+                el.style.width = "calc(100% - 32px)";
+                el.innerHTML = `<div class="w-10 text-2xl mr-2 text-center">${p.avatar}</div><div class="w-24 font-bold text-white truncate text-sm">${p.name}</div><div class="flex-1 h-4 bg-slate-900 rounded-full overflow-hidden mx-2 border border-slate-600"><div class="progress-bar h-full bg-gradient-to-r from-cyan-500 to-blue-500" style="width: 0%"></div></div><div class="w-16 text-right font-mono text-cyan-400 font-bold score-txt">0</div>`;
+                container.appendChild(el);
+            }
+            el.style.top = (index * 60 + 10) + 'px';
+            el.querySelector('.progress-bar').style.width = pct + '%';
+            el.querySelector('.score-txt').innerText = p.score || 0;
+            if(index===0) el.classList.add('border-yellow-500'); else el.classList.remove('border-yellow-500');
+        });
+    }
+
+    // ================= CLIENT LOGIC =================
     function goToAvatarSelect() {
-        if(!document.getElementById('player-name').value) return;
-        state.name = document.getElementById('player-name').value;
-        AUDIO.resume(); show('view-avatar-select');
-        const grid = document.getElementById('avatar-grid'); grid.innerHTML='';
-        AVATARS.forEach(a => {
-            const b=document.createElement('div'); 
-            b.className='text-5xl md:text-6xl p-4 md:p-6 rounded-2xl border-4 border-slate-700 transition-all cursor-pointer grayscale opacity-60 bg-slate-800 flex items-center justify-center'; 
-            b.innerText=a;
-            b.onclick=()=> { 
-                document.querySelectorAll('#avatar-grid div').forEach(x=>{x.classList.remove('grayscale-0','opacity-100','scale-110','text-black','bg-amber-400','border-amber-500','shadow-lg'); x.classList.add('grayscale','opacity-60','bg-slate-800');}); 
-                b.classList.remove('grayscale','opacity-60','bg-slate-800');
-                b.classList.add('grayscale-0','opacity-100','scale-110','text-black','bg-amber-400','border-amber-500','shadow-lg');
-                state.av=a; 
-                document.getElementById('btn-join-confirm').disabled=false;
-                playTone(600, 'sine', 0.1); 
-            };
-            grid.appendChild(b);
+        const name = document.getElementById('player-name').value.trim();
+        if(!name) return alert("Enter Name!");
+        state.playerName = name;
+        showView('view-avatar-select');
+        
+        const grid = document.getElementById('avatar-grid');
+        grid.innerHTML = '';
+        AVATAR_OPTIONS.forEach((av, idx) => {
+            const btn = document.createElement('div');
+            btn.className = 'avatar-btn';
+            btn.id = `av-btn-${idx}`;
+            btn.innerText = av;
+            btn.onclick = () => selectAvatar(av, idx);
+            grid.appendChild(btn);
         });
-    }
 
-    function confirmJoin() {
-        const pRef = db.ref(`games/${state.gid}/players/${state.pid}`);
-        pRef.set({ name: state.name, avatar: state.av, score: 0 }).then(() => {
-            show('view-student-wait');
-            document.getElementById('my-final-avatar').innerText = state.av;
-            document.getElementById('my-final-name').innerText = state.name;
-            
-            db.ref(`games/${state.gid}`).on('value', snap => {
-                const g = snap.val(); if(!g) return;
-                state.settings = g.settings;
-                document.getElementById('client-topic-wait').innerText = "Topic: " + g.settings.topic.toUpperCase();
-
-                if(g.status === 'playing' && !state.active) {
-                    state.active = true;
-                    show('view-game'); 
-                    setupKeypad(state.settings.topic);
-                    generateQuestion();
-                    startClientTimer(g.endTime);
-                } else if(g.status === 'finished') {
-                    state.active = false; document.getElementById('game-freeze-overlay').classList.remove('hidden');
-                } else if(g.status === 'results') {
-                    showResults(g.finalStandings);
+        db.ref(`games/${state.gameId}/players`).on('value', snap => {
+            document.querySelectorAll('.avatar-btn').forEach(b => {
+                if(!b.classList.contains('selected')) b.classList.remove('taken');
+            });
+            snap.forEach(c => {
+                const p = c.val();
+                if (p.avatar && p.name !== state.playerName) {
+                    AVATAR_OPTIONS.forEach((opt, idx) => {
+                        if (opt === p.avatar) {
+                            const btn = document.getElementById(`av-btn-${idx}`);
+                            if(btn) btn.classList.add('taken');
+                        }
+                    });
                 }
             });
         });
     }
 
-    function startClientTimer(end) {
-        const el = document.getElementById('client-timer-display');
-        let tLoop = setInterval(() => {
-            if(!end) { el.innerText="RACE"; return; }
-            let left = Math.ceil((end-Date.now())/1000);
-            if(left<=5 && left>0 && left!==state.lastBeep) { state.lastBeep=left; playTone(600+(5-left)*200, 'sawtooth', 0.1); }
-            if(left<=0) { el.innerText="00:00"; clearInterval(tLoop); }
-            else el.innerText = `${Math.floor(left/60)}:${(left%60).toString().padStart(2,'0')}`;
-        }, 500);
+    function selectAvatar(av, idx) {
+        const btn = document.getElementById(`av-btn-${idx}`);
+        if (btn.classList.contains('taken')) return; 
+        document.querySelectorAll('.avatar-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        state.avatar = av;
+        document.getElementById('btn-join-confirm').disabled = false;
     }
 
-    const cvs = document.getElementById('gameCanvas'), ctx = cvs.getContext('2d');
-    function resize() { 
-        const p=document.getElementById('canvas-container'); 
-        if(!p || p.clientWidth === 0) return; 
-        cvs.width=p.clientWidth; cvs.height=p.clientHeight; 
-        if(state.q) draw(); 
-    }
-    window.onresize=resize;
+    // --- V28 關鍵修正：身份寫入 Session ---
+    function confirmJoin(isReconnect = false) {
+        if(!db) return alert("Waiting for connection...");
+        
+        // 儲存身份
+        sessionStorage.setItem('ma_pid', state.playerId);
+        sessionStorage.setItem('ma_name', state.playerName);
+        sessionStorage.setItem('ma_avatar', state.avatar);
+        sessionStorage.setItem('ma_gid', state.gameId);
 
-    // 鍵盤設置：移除了小數點，只針對有負數的題目提供負號
-    function setupKeypad(topic) {
-        const grid = document.getElementById('keypad-grid'); grid.innerHTML = '';
-        const btnClass = "active:scale-95 transition-transform shadow-lg text-2xl md:text-3xl font-bold rounded-xl border-b-4 border-slate-950 active:border-b-0 active:translate-y-1 bg-slate-800 text-cyan-100 active:bg-cyan-700";
-        const delClass = "active:scale-95 transition-transform shadow-lg text-2xl md:text-3xl font-bold rounded-xl border-b-4 border-slate-950 active:border-b-0 active:translate-y-1 bg-rose-900/40 text-rose-500";
-        
-        [7,8,9,4,5,6,1,2,3].forEach(n => grid.innerHTML += `<button class="${btnClass}" onclick="input('${n}')">${n}</button>`);
-        
-        // 只有方程、有向數、坐標需要負號，其他只要數字和DEL
-        if(['equation','directed','coord'].includes(topic)) {
-            grid.innerHTML += `<button class="active:scale-95 transition-transform shadow-lg text-2xl md:text-3xl font-bold rounded-xl border-b-4 border-slate-950 active:border-b-0 active:translate-y-1 bg-slate-700 text-yellow-400" onclick="input('-')">-</button>`;
-            grid.innerHTML += `<button class="${btnClass}" onclick="input('0')">0</button>`;
-            grid.innerHTML += `<button class="${delClass}" onclick="input('DEL')">DEL</button>`;
-        } else {
-             // 補一個空位保持佈局
-             grid.innerHTML += `<button class="${delClass}" onclick="input('DEL')">DEL</button>`;
-             grid.innerHTML += `<button class="${btnClass}" onclick="input('0')">0</button>`;
-             grid.innerHTML += `<div class="bg-transparent"></div>`;
+        if (!isReconnect) {
+            // 新加入時才 set，避免重連時分數歸零
+            const playerRef = db.ref(`games/${state.gameId}/players/${state.playerId}`);
+            playerRef.update({ name: state.playerName, avatar: state.avatar, score: 0 });
         }
-        grid.innerHTML += `<button class="col-span-3 bg-gradient-to-b from-emerald-600 to-emerald-800 text-white rounded-xl font-bold text-3xl py-3 active:translate-y-1 shadow-lg mt-1" onclick="checkAnswer()">GO</button>`;
+        
+        db.ref(`games/${state.gameId}/players`).off(); 
+
+        showView('view-student-wait');
+        document.getElementById('my-final-avatar').innerText = state.avatar;
+        document.getElementById('my-final-name').innerText = state.playerName;
+        
+        db.ref(`games/${state.gameId}`).on('value', snap => {
+            const game = snap.val();
+            if(!game) return;
+            state.settings = game.settings;
+            
+            if (game.status === 'playing') {
+                document.getElementById('game-freeze-overlay').classList.add('hidden');
+                if (!state.active) {
+                    state.active = true;
+                    showView('view-game');
+                    if(!state.q) generateQuestion();
+                    startLocalTicker(game.endTime, 'client-timer-display');
+                    // 啟動渲染循環，解決白屏
+                    requestAnimationFrame(gameRenderLoop);
+                }
+            } 
+            else if (game.status === 'finished' || game.status === 'calculating') {
+                state.active = false;
+                if(localTimerInterval) clearInterval(localTimerInterval);
+                document.getElementById('game-freeze-overlay').classList.remove('hidden');
+            } 
+            else if (game.status === 'results') {
+                showPodiumSequence(game.finalStandings);
+                db.ref(`games/${state.gameId}`).off(); 
+            }
+        });
     }
 
-    // 核心數學邏輯修正：所有答案強制為整數
+    function startLocalTicker(endTime, elementId) {
+        if(localTimerInterval) clearInterval(localTimerInterval);
+        const el = document.getElementById(elementId);
+        updateTime();
+        localTimerInterval = setInterval(updateTime, 200);
+        function updateTime() {
+            if(!endTime) { el.innerText = "RACE"; return; }
+            const left = Math.ceil((endTime - Date.now()) / 1000);
+            if(left <= 0) {
+                el.innerText = "00:00";
+                if(state.role !== 'host') clearInterval(localTimerInterval);
+                return;
+            }
+            el.innerText = `${Math.floor(left / 60)}:${(left % 60).toString().padStart(2, '0')}`;
+        }
+    }
+
+    // ================= GAMEPLAY & RENDERING =================
+    
     function generateQuestion() {
-        const r = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
-        const topic = state.settings.topic;
-        let q = { type: topic, ans: 0 }; let hint = "";
-
-        if(topic === 'area') {
-            const shapes = ['rect','para','tri','trap','comp'];
-            q.shape = shapes[r(0,shapes.length-1)];
-            if(q.shape==='rect') { q.w=r(5,12); q.h=r(4,9); q.ans=q.w*q.h; hint="Area = W × H"; }
-            else if(q.shape==='para') { q.b=r(5,12); q.h=r(4,9); q.ans=q.b*q.h; hint="Area = B × H"; }
-            else if(q.shape==='tri') { 
-                q.b=r(6,14); q.h=r(4,10); 
-                // Fix: 確保底或高是雙數
-                if(q.b%2!==0 && q.h%2!==0) q.b++; 
-                q.ans=(q.b*q.h)/2; hint="Area = B × H ÷ 2"; 
-            }
-            else if(q.shape==='trap') { 
-                q.t=r(4,8); q.b=q.t+r(2,6); q.h=r(4,8); 
-                // Fix: 確保 (上+下)*高 是雙數 (最簡單是讓高變雙數)
-                if(q.h%2!==0) q.h++;
-                q.ans=((q.t+q.b)*q.h)/2; hint="Area = (Top+Btm)×H÷2"; 
-            }
-            else { q.w=r(8,12); q.h=r(8,12); q.cw=r(3,5); q.ch=r(3,5); q.ans=(q.w*q.h)-(q.cw*q.ch); hint="Big - Small"; }
-        } else if(topic === 'volume') {
-             q.shape='cuboid'; q.l=r(3,8); q.w=r(2,6); q.h=r(2,6); q.ans=q.l*q.w*q.h; hint="Vol = L × W × H";
-        } else if(topic === 'equation') {
-            const x=r(-9,9); const a=r(2,6)*(Math.random()<.5?1:-1); const b=r(-10,10); const c=(a*x)+b;
-            q.txt = `${a}x ${b>=0?'+ '+b:'- '+Math.abs(b)} = ${c}`; q.ans = x; hint = "Solve for x";
-        } else if(topic === 'percent') {
-            // Fix: 基數改為 10 的倍數，百分比也是 10 的倍數，保證整除
-            const p=r(1,9)*10; const y=r(1,10)*10; 
-            q.txt=`${p}% of ${y} = ?`; q.ans=(p/100)*y; hint = "Calculate Value";
-        } else if(topic === 'directed') {
-            const n1=r(-12,12), n2=r(-12,12), ops=['+','-','×'], op=ops[r(0,2)];
-            if(op==='+')q.ans=n1+n2; else if(op==='-')q.ans=n1-n2; else q.ans=n1*n2;
-            const fmt=n=>n<0?`(${n})`:n; q.txt=`${fmt(n1)} ${op} ${fmt(n2)}`; hint="Watch signs";
-        } else if(topic === 'angles') {
-            q.subType=Math.random()>.5?'supp':'comp'; 
-            if(q.subType==='supp') { q.ans=r(30,150); q.angleKnown=180-q.ans; hint="Straight Line = 180°"; } 
-            else { q.ans=r(20,70); q.angleKnown=90-q.ans; hint="Right Angle = 90°"; }
-        } else if(topic === 'coord') {
-            q.x=r(-5,5); q.y=r(-5,5); if(q.x===0)q.x++; if(q.y===0)q.y--; q.ask=Math.random()>0.5?'x':'y'; q.ans=q.ask==='x'?q.x:q.y; hint=`Find ${q.ask.toUpperCase()}-coord`;
+        const type = Math.random() > 0.5 ? 'add' : 'mul';
+        let a, b, ans;
+        if (type === 'add') {
+            a = Math.floor(Math.random() * 50) + 10;
+            b = Math.floor(Math.random() * 50) + 10;
+            ans = a + b;
+            state.qText = `${a} + ${b} = ?`;
+        } else {
+            a = Math.floor(Math.random() * 12) + 2;
+            b = Math.floor(Math.random() * 9) + 2;
+            ans = a * b;
+            state.qText = `${a} × ${b} = ?`;
         }
-        state.q = q; state.input = ''; document.getElementById('input-display').innerText='_'; document.getElementById('hint-display').innerText=hint;
-        setTimeout(draw, 50);
+        state.q = { ans: ans };
+        state.input = '';
+        updateInputDisplay();
     }
 
-    function draw() {
-        const w=cvs.width, h=cvs.height;
-        const cx=w/2; const cy=h*0.35; 
-
-        if(w===0 || h===0) return;
-        
-        ctx.clearRect(0,0,w,h); ctx.strokeStyle='#22d3ee'; ctx.fillStyle='#fff'; ctx.lineWidth=4;
-        ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='bold 28px Roboto Mono';
-        const label=(t,x,y,c='#fbbf24')=>{ctx.fillStyle='#0f172a';ctx.fillRect(x-15,y-15,30,30);ctx.fillStyle=c;ctx.fillText(t,x,y);};
-        
-        if(state.q.type==='area') {
-            const s=Math.min(w,h)/18;
-            if(state.q.shape==='rect') { ctx.strokeRect(cx-state.q.w*s/2,cy-state.q.h*s/2,state.q.w*s,state.q.h*s); label(state.q.w,cx,cy-state.q.h*s/2-25); label(state.q.h,cx+state.q.w*s/2+25,cy); }
-            else if(state.q.shape==='tri') { ctx.beginPath();ctx.moveTo(cx,cy-state.q.h*s/2);ctx.lineTo(cx-state.q.b*s/2,cy+state.q.h*s/2);ctx.lineTo(cx+state.q.b*s/2,cy+state.q.h*s/2);ctx.closePath();ctx.stroke(); label(state.q.b,cx,cy+state.q.h*s/2+25); label(state.q.h,cx+15,cy); }
-            else if(state.q.shape==='trap') { const t=state.q.t*s,b=state.q.b*s,hh=state.q.h*s; ctx.beginPath();ctx.moveTo(cx-t/2,cy-hh/2);ctx.lineTo(cx+t/2,cy-hh/2);ctx.lineTo(cx+b/2,cy+hh/2);ctx.lineTo(cx-b/2,cy+hh/2);ctx.closePath();ctx.stroke(); label(state.q.t,cx,cy-hh/2-25);label(state.q.b,cx,cy+hh/2+25);label(state.q.h,cx-b/2-25,cy); }
-            else { ctx.strokeRect(cx-state.q.w*s/2,cy-state.q.h*s/2,state.q.w*s,state.q.h*s); ctx.fillStyle='rgba(255,255,255,0.1)';ctx.fillRect(cx+state.q.w*s/2-state.q.cw*s,cy-state.q.h*s/2,state.q.cw*s,state.q.ch*s); }
-        } else if(state.q.type==='volume') {
-             const d=30;ctx.strokeRect(cx-60,cy-60,120,120);ctx.beginPath();ctx.moveTo(cx-60,cy-60);ctx.lineTo(cx-30,cy-90);ctx.lineTo(cx+90,cy-90);ctx.lineTo(cx+90,cy+30);ctx.lineTo(cx+60,cy+60);ctx.stroke();ctx.moveTo(cx+90,cy-90);ctx.lineTo(cx+60,cy-60);ctx.stroke();label(state.q.l,cx,cy+80);label(state.q.h,cx-80,cy);label(state.q.w,cx+80,cy-80);
-        } else if(state.q.type==='equation'||state.q.type==='percent'||state.q.type==='directed') {
-            ctx.font='bold 40px Roboto Mono'; ctx.fillStyle='#a5f3fc';
-            state.q.txt.split('\n').forEach((l,i)=>ctx.fillText(l,cx,cy+(i*50)-25));
-        } else if(state.q.type==='angles') {
-            const l=120; ctx.lineWidth=5; ctx.beginPath();
-            if(state.q.subType==='supp'){
-                ctx.moveTo(cx-l,cy); ctx.lineTo(cx+l,cy); ctx.stroke();
-                ctx.moveTo(cx,cy); ctx.lineTo(cx-40,cy-l); ctx.stroke();
-                ctx.beginPath(); ctx.strokeStyle='#ef4444'; ctx.arc(cx,cy,40,Math.PI,Math.PI+Math.acos(40/Math.sqrt(40*40+l*l))); ctx.stroke();
-                ctx.fillStyle='#fbbf24'; ctx.fillText('?',cx-30,cy-20);
-                ctx.fillStyle='#fff'; ctx.fillText(state.q.angleKnown+'°',cx+20,cy-20);
-            } else {
-                ctx.moveTo(cx-l,cy); ctx.lineTo(cx,cy); ctx.lineTo(cx,cy-l); ctx.stroke();
-                ctx.moveTo(cx,cy); ctx.lineTo(cx-Math.cos(state.q.angleKnown*Math.PI/180)*l,cy-Math.sin(state.q.angleKnown*Math.PI/180)*l); ctx.stroke();
-                ctx.strokeStyle='#fff'; ctx.strokeRect(cx-20,cy-20,20,20);
-                ctx.beginPath(); ctx.strokeStyle='#ef4444'; ctx.arc(cx,cy,50,Math.PI, Math.PI+(state.q.angleKnown*Math.PI/180)); ctx.stroke();
-                ctx.fillStyle='#fbbf24'; ctx.fillText('?',cx-40,cy-10);
+    function input(val) {
+        if(!state.active) return;
+        if (val === 'DEL') {
+            state.input = state.input.slice(0, -1);
+        } else {
+            if (state.input.length < 6) {
+                state.input += val;
+                playTone(800, 'sine', 0.05);
             }
-        } else if(state.q.type==='coord') {
-            ctx.strokeStyle='#334155';ctx.lineWidth=1; for(let i=-5;i<=5;i++) { ctx.beginPath();ctx.moveTo(cx+i*30,cy-150);ctx.lineTo(cx+i*30,cy+150);ctx.stroke(); ctx.beginPath();ctx.moveTo(cx-150,cy+i*30);ctx.lineTo(cx+150,cy+i*30);ctx.stroke(); }
-            ctx.strokeStyle='#94a3b8';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(cx,cy-150);ctx.lineTo(cx,cy+150);ctx.stroke();ctx.beginPath();ctx.moveTo(cx-150,cy);ctx.lineTo(cx+150,cy);ctx.stroke();
-            ctx.fillStyle='#ef4444';ctx.beginPath();ctx.arc(cx+state.q.x*30,cy-state.q.y*30,10,0,Math.PI*2);ctx.fill();
-            ctx.fillStyle='#fff';ctx.fillText(`(${state.q.ask==='x'?'?':state.q.x}, ${state.q.ask==='y'?'?':state.q.y})`,cx,cy+180);
         }
+        updateInputDisplay();
     }
 
-    function input(k) { if(!state.active)return; if(k==='DEL')state.input=state.input.slice(0,-1); else if(state.input.length<6)state.input+=k; document.getElementById('input-display').innerText=state.input||'_'; playTone(500,'sine',0.05); }
+    function updateInputDisplay() {
+        const el = document.getElementById('input-display');
+        el.innerText = state.input === '' ? '_' : state.input;
+    }
+
     function checkAnswer() {
-        if(!state.active||!state.input)return; const ok=parseInt(state.input) === Math.round(state.q.ans); // Strict integer check
-        const fb=document.getElementById('feedback-msg');
-        if(ok){state.score+=100; playTone(800,'triangle',0.1); fb.innerText="GOOD!";fb.style.color='#4ade80';fb.style.opacity=1; db.ref(`games/${state.gid}/players/${state.pid}`).update({score:state.score}); setTimeout(()=>{fb.style.opacity=0;generateQuestion()},400);}
-        else{playTone(150,'sawtooth',0.3); fb.innerText="MISS";fb.style.color='#ef4444';fb.style.opacity=1; setTimeout(()=>{fb.style.opacity=0;state.input='';document.getElementById('input-display').innerText='_'},500);}
-        document.getElementById('client-score').innerText=state.score+" PTS";
+        if(!state.active) return;
+        const playerAns = parseInt(state.input);
+        if (playerAns === state.q.ans) {
+            playTone(1200, 'triangle', 0.1);
+            showFeedback('Correct!', 'text-green-400');
+            state.score += 100;
+            document.getElementById('client-score').innerText = state.score + " PTS";
+            if(state.gameId && state.playerId) {
+                db.ref(`games/${state.gameId}/players/${state.playerId}/score`).set(state.score);
+            }
+            generateQuestion();
+        } else {
+            playTone(200, 'sawtooth', 0.3);
+            showFeedback('Wrong', 'text-red-500');
+            state.input = '';
+            updateInputDisplay();
+            const container = document.getElementById('view-game');
+            container.classList.add('animate-[shake_0.3s]');
+            setTimeout(() => container.classList.remove('animate-[shake_0.3s]'), 300);
+        }
     }
 
-    function showResults(list) {
-        if(!list) return;
-        show('view-podium');
-        const setPod = (id, p, d) => {
-            if(!p) return;
-            setTimeout(() => {
-                const el = document.getElementById(id);
-                el.style.opacity = '1'; el.style.transform = 'translateY(0)';
-                document.getElementById(id.replace('podium','p')+'-name').innerText = p.name;
-                document.getElementById(id.replace('podium','p')+'-avatar').innerText = p.avatar;
-                document.getElementById(id.replace('podium','p')+'-score').innerText = p.score;
-                if(id==='podium-1') playFanfare(); else playTone(200, 'square', 0.2); 
-            }, d);
-        };
-        setPod('podium-3', list[2], 500);
-        setPod('podium-2', list[1], 1500);
-        setPod('podium-1', list[0], 2500);
-        setTimeout(() => confetti({ particleCount: 300, spread: 150, origin: { y: 0.6 } }), 2600);
+    function showFeedback(text, colorClass) {
+        const el = document.getElementById('feedback-msg');
+        el.innerText = text;
+        el.className = `absolute top-1/3 left-1/2 -translate-x-1/2 text-5xl font-black pointer-events-none z-30 transition-all duration-500 transform scale-150 ${colorClass}`;
+        el.style.opacity = 1;
         setTimeout(() => {
-            show('view-rankings');
-            const b = document.getElementById('ranking-list-body'); b.innerHTML='';
-            list.forEach((p,i) => {
-                b.innerHTML += `<tr class="border-b border-slate-700 text-slate-300 animate-[pop_0.5s]"><td class="p-2 md:p-4 font-mono font-bold text-slate-500">${i+1}</td><td class="p-2 md:p-4 flex gap-2 md:gap-4 items-center"><span class="text-2xl md:text-3xl">${p.avatar}</span><b class="truncate max-w-[150px] md:max-w-none">${p.name}</b></td><td class="p-2 md:p-4 text-right font-mono font-bold text-cyan-400">${p.score}</td></tr>`;
-            });
-        }, 7000);
+            el.style.opacity = 0;
+            el.style.transform = "translate(-50%, -50%) scale(0.5)";
+        }, 800);
+    }
+
+    // --- V28 關鍵修正：Canvas 渲染循環 ---
+    let canvas, ctx;
+    function resizeCanvas() {
+        canvas = document.getElementById('gameCanvas');
+        if(!canvas) return;
+        const parent = document.getElementById('canvas-container');
+        canvas.width = parent.clientWidth;
+        canvas.height = parent.clientHeight;
+        ctx = canvas.getContext('2d');
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function gameRenderLoop() {
+        if (!state.active) return;
+        drawGame();
+        requestAnimationFrame(gameRenderLoop);
+    }
+
+    function drawGame() {
+        if(!ctx || !state.qText) return;
+        
+        // 1. 強制重繪背景 (解決白屏)
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // 2. 題目卡片
+        ctx.fillStyle = '#1e293b'; 
+        const cardW = Math.min(300, canvas.width - 40);
+        const cardH = 160;
+        const cardX = (canvas.width - cardW) / 2;
+        const cardY = (canvas.height - cardH) / 2;
+        
+        ctx.beginPath();
+        // 簡單圓角矩形模擬
+        ctx.roundRect(cardX, cardY, cardW, cardH, 20);
+        ctx.fill();
+        ctx.lineWidth = 4;
+        
+        // 3. 呼吸燈效果
+        const time = Date.now() / 1000;
+        ctx.strokeStyle = `rgba(34, 211, 238, ${0.5 + Math.sin(time * 3) * 0.2})`;
+        ctx.stroke();
+
+        // 4. 文字
+        ctx.font = 'bold 40px "Roboto Mono"';
+        ctx.fillStyle = 'white';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(state.qText, canvas.width/2, canvas.height/2);
+    }
+
+    // ================= PODIUM & RESULTS =================
+    function showPodiumSequence(fullList) {
+        state.active = false;
+        if(localTimerInterval) clearInterval(localTimerInterval);
+        
+        showView('view-podium');
+        renderPodium(fullList);
+        
+        const end = Date.now() + 3000;
+        (function frame() {
+            confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+            confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        }());
+
+        setTimeout(() => {
+            showFullRankingList(fullList);
+        }, 6000);
+    }
+
+    function renderPodium(list) {
+        if(!list) list = [];
+        const ids = ['podium-1', 'podium-2', 'podium-3'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            el.classList.remove('podium-enter');
+            el.style.opacity = '0';
+            el.style.visibility = 'hidden';
+        });
+
+        const showRank = (rankDivId, pData, delayIdx) => {
+            if(!pData) return;
+            const el = document.getElementById(rankDivId);
+            const rankNum = (rankDivId === 'podium-1') ? 1 : (rankDivId === 'podium-2' ? 2 : 3);
+            
+            document.getElementById(`p${rankNum}-name`).innerText = pData.name;
+            document.getElementById(`p${rankNum}-avatar`).innerText = pData.avatar;
+            document.getElementById(`p${rankNum}-score`).innerText = pData.score;
+            
+            el.style.visibility = 'visible';
+            setTimeout(() => { el.classList.add('podium-enter'); }, delayIdx * 200);
+        };
+
+        if(list[0]) showRank('podium-1', list[0], 0);
+        if(list[1]) showRank('podium-2', list[1], 1);
+        if(list[2]) showRank('podium-3', list[2], 2);
+    }
+
+    // --- V28 關鍵修正：補全列表顯示邏輯 ---
+    function showFullRankingList(list) {
+        showView('view-rankings');
+        if(state.role === 'host') document.getElementById('host-restart-area').classList.remove('hidden');
+
+        const tbody = document.getElementById('ranking-list-body');
+        tbody.innerHTML = '';
+        if(!list) return;
+
+        list.forEach((p, idx) => {
+            const rank = idx + 1;
+            let colorClass = "text-white";
+            if(rank === 1) colorClass = "text-yellow-400 font-bold";
+            else if(rank === 2) colorClass = "text-slate-300 font-bold";
+            else if(rank === 3) colorClass = "text-orange-400 font-bold";
+
+            const tr = document.createElement('tr');
+            tr.className = "border-b border-slate-700/50 hover:bg-slate-800/50 transition-colors rank-item";
+            tr.style.animationDelay = (idx * 0.05) + "s";
+            
+            const isMe = (state.playerName === p.name);
+            tr.innerHTML = `<td class="p-3 ${colorClass}">${rank}</td>
+                            <td class="p-3 flex items-center gap-3">
+                                <span class="text-2xl">${p.avatar}</span>
+                                <span class="font-bold text-white">${p.name} ${isMe ? '(YOU)' : ''}</span>
+                            </td>
+                            <td class="p-3 text-right font-mono text-cyan-400 text-xl font-bold">${p.score}</td>`;
+            
+            if(isMe) tr.classList.add('bg-cyan-900/30', 'border-cyan-500', 'border');
+            tbody.appendChild(tr);
+        });
+    }
+
+    function backToMenu() {
+        location.href = location.pathname;
     }
 </script>
 </body>
