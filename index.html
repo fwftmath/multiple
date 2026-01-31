@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Math Arena V23: iPad Edition</title>
+    <title>Math Arena V24: Layout Fix</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -16,28 +15,24 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Roboto+Mono:wght@500;700&display=swap');
         
-        /* iPad & Touch Optimization */
         body { background-color: #0f172a; color: white; touch-action: none; user-select: none; font-family: 'Roboto Mono', monospace; overflow: hidden; -webkit-tap-highlight-color: transparent; }
         .font-display { font-family: 'Black Ops One', cursive; }
         .neon-text { text-shadow: 0 0 10px #22d3ee; }
         
-        /* Bigger Buttons for iPad */
+        /* UI Components */
         .btn-primary { @apply bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-4 px-8 rounded-xl shadow-[0_0_15px_rgba(8,145,178,0.5)] transform transition active:scale-95 w-full mb-4 text-2xl; }
         .btn-topic { @apply bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 text-cyan-400 font-bold py-6 rounded-2xl shadow-lg transition-all active:scale-95 flex flex-col items-center justify-center gap-2; }
-        
         .avatar-btn { @apply text-6xl p-6 rounded-2xl border-4 border-slate-700 transition-all cursor-pointer grayscale opacity-60 bg-slate-800 flex items-center justify-center; }
         .avatar-btn.selected { @apply grayscale-0 opacity-100 scale-110 z-10 text-black; background-color: #fbbf24; border-color: #f59e0b; box-shadow: 0 0 30px rgba(251, 191, 36, 0.8); }
-
         .key-btn { @apply active:scale-95 transition-transform shadow-lg text-3xl font-bold rounded-xl border-b-4 border-slate-950 active:border-b-0 active:translate-y-1; }
         
-        /* List Item for LIVE View */
-        .lane-item { @apply w-full bg-slate-800 rounded-xl flex items-center px-4 py-3 border border-slate-600 shadow-md mb-3 transition-all; }
+        /* Host List Item - More Compact for V24 */
+        .lane-item { @apply w-full bg-slate-800 rounded-xl flex items-center px-4 py-2 border border-slate-600 shadow-md mb-2 transition-all; }
         
         /* Canvas Layout */
         #canvas-container { position: relative; width: 100%; height: 100%; flex: 1; overflow: hidden; background-color: #1e293b; border-radius: 0 0 1rem 1rem; }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         
-        /* Animations */
         @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
@@ -45,7 +40,7 @@
 
     <div id="view-menu" class="text-center p-8 w-full max-w-2xl hidden flex-col items-center z-50">
         <h1 class="text-8xl font-display italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-4 neon-text">MATH<br>ARENA</h1>
-        <div class="text-3xl text-slate-400 font-display mb-12">IPAD EDITION V23</div>
+        <div class="text-3xl text-slate-400 font-display mb-12">HK S1 V24</div>
         <div id="db-status" class="text-lg text-red-500 font-bold mb-8">🔴 Connecting...</div>
         <button onclick="setupHost()" class="btn-primary border-l-8 border-cyan-300 text-3xl py-8">📡 HOST GAME</button>
     </div>
@@ -76,18 +71,18 @@
             </div>
             <div class="bg-slate-900 p-8 rounded-2xl border-2 border-slate-700 flex flex-col shadow-xl">
                 <div class="mb-8">
-                    <label class="block text-slate-400 text-lg mb-3 font-bold">GAME MODE</label>
+                    <label class="block text-slate-400 text-lg mb-3 font-bold">MODE</label>
                     <div class="grid grid-cols-2 gap-4">
-                        <button class="border-2 border-slate-600 text-slate-300 py-4 rounded-xl text-xl font-bold" onclick="setMode('score')">🏁 Score Race</button>
-                        <button class="border-2 border-cyan-500 text-cyan-400 bg-cyan-900/30 py-4 rounded-xl text-xl font-bold" onclick="setMode('time')">⏱️ Time Limit</button>
+                        <button class="border-2 border-slate-600 text-slate-300 py-4 rounded-xl text-xl font-bold" onclick="setMode('score')">🏁 Score</button>
+                        <button class="border-2 border-cyan-500 text-cyan-400 bg-cyan-900/30 py-4 rounded-xl text-xl font-bold" onclick="setMode('time')">⏱️ Time</button>
                     </div>
                 </div>
                 <div class="mb-8">
-                    <label class="block text-slate-400 text-lg mb-3 font-bold">DURATION</label>
+                    <label class="block text-slate-400 text-lg mb-3 font-bold">LIMIT</label>
                     <input type="range" id="setting-slider" min="20" max="180" step="10" value="60" class="w-full h-4 bg-slate-700 rounded-lg cursor-pointer accent-cyan-500" oninput="updateSetting(this.value)">
                     <div class="text-right text-cyan-400 text-4xl font-bold mt-4" id="setting-value">60 SEC</div>
                 </div>
-                <button id="btn-host-start" onclick="hostStartGame()" class="btn-primary mt-auto bg-slate-700 text-slate-500 cursor-not-allowed opacity-50" disabled>⏳ WAITING...</button>
+                <button id="btn-host-start" onclick="hostStartGame()" class="btn-primary mt-auto bg-slate-700 text-slate-500 cursor-not-allowed opacity-50" disabled>⏳ WAIT FOR PLAYERS</button>
             </div>
         </div>
     </div>
@@ -97,8 +92,8 @@
             <div class="font-display text-4xl italic text-slate-300">LIVE RANKING</div>
             <div class="text-7xl font-mono font-bold text-cyan-400 neon-text" id="host-timer-display">00:00</div>
         </div>
-        <div class="flex-1 overflow-y-auto px-4 pb-20 space-y-3" id="lanes-container">
-            </div>
+        <div class="flex-1 overflow-y-auto px-4 pb-32 space-y-2 scroll-smooth" id="lanes-container"></div>
+        
         <div id="host-status-msg" class="absolute bottom-1/2 left-0 w-full text-center pointer-events-none opacity-0 transition-opacity duration-500 z-50">
             <span class="bg-black/90 text-yellow-400 px-12 py-6 rounded-full text-5xl font-bold border-4 border-yellow-500 shadow-2xl backdrop-blur-sm">🛑 TIME UP</span>
         </div>
@@ -106,19 +101,19 @@
 
     <div id="view-join" class="text-center p-8 max-w-xl w-full hidden z-50">
         <h2 class="text-3xl font-bold mb-8 text-cyan-400">ENTER NAME</h2>
-        <input type="text" id="player-name" placeholder="YOUR NAME" maxlength="8" class="w-full p-6 rounded-xl bg-slate-900 border-4 border-slate-700 text-white text-center text-3xl mb-8 focus:border-cyan-500 uppercase font-display placeholder-slate-600 outline-none">
+        <input type="text" id="player-name" placeholder="YOUR NAME" maxlength="8" class="w-full p-6 rounded-xl bg-slate-900 border-4 border-slate-700 text-white text-center text-3xl mb-8 focus:border-cyan-500 uppercase font-display outline-none">
         <button onclick="goToAvatarSelect()" class="btn-primary">NEXT</button>
     </div>
 
     <div id="view-avatar-select" class="text-center p-8 max-w-2xl w-full hidden z-50 flex-col">
         <h2 class="text-3xl font-bold mb-6 text-cyan-400">CHOOSE AVATAR</h2>
         <div class="grid grid-cols-4 gap-6 mb-10" id="avatar-grid"></div>
-        <button onclick="confirmJoin()" class="btn-primary" id="btn-join-confirm" disabled>READY TO JOIN</button>
+        <button onclick="confirmJoin()" class="btn-primary" id="btn-join-confirm" disabled>READY</button>
     </div>
 
     <div id="view-student-wait" class="text-center p-8 w-full hidden z-50">
         <div class="text-8xl mb-6 animate-bounce">⏳</div>
-        <h2 class="text-4xl font-bold text-white mb-4">WAITING FOR HOST...</h2>
+        <h2 class="text-4xl font-bold text-white mb-4">WAITING...</h2>
         <div class="mt-8 p-8 bg-slate-900 rounded-2xl border-2 border-slate-700 flex flex-col items-center shadow-2xl">
             <div id="my-final-avatar" class="text-8xl mb-4"></div>
             <span id="my-final-name" class="font-bold text-cyan-400 text-3xl"></span>
@@ -130,7 +125,7 @@
         <div id="game-freeze-overlay" class="absolute inset-0 bg-slate-950/95 z-40 hidden flex flex-col items-center justify-center backdrop-blur">
             <div class="text-8xl mb-6">🛑</div>
             <h2 class="text-5xl font-display text-red-500 mb-2 neon-text">FINISHED</h2>
-            <div class="text-slate-400 text-xl">Look at the Host Screen!</div>
+            <div class="text-slate-400 text-xl">Look at Host Screen</div>
         </div>
         
         <div class="h-20 bg-slate-950 border-b-2 border-slate-800 flex justify-between items-center px-6 shrink-0 shadow-lg z-20">
@@ -170,14 +165,12 @@
     </div>
 
 <script>
-    // --- 1. FIREBASE CONFIG ---
     const firebaseConfig = { apiKey: "AIzaSyAYnQB2o5cPn42RiNAik7537ihduICJwdQ", authDomain: "fwftmath.firebaseapp.com", projectId: "fwftmath", storageBucket: "fwftmath.firebasestorage.app", messagingSenderId: "70090299689", appId: "1:70090299689:web:ae300db1f79a3eda62bf38" };
     let app, db;
     try { app = firebase.initializeApp(firebaseConfig); db = firebase.database(); 
         db.ref(".info/connected").on("value", s => document.getElementById('db-status').innerText = s.val()?"🟢 ONLINE":"🟠 CONNECTING...");
     } catch(e){console.error("FB Err",e);}
 
-    // --- 2. AUDIO & STATE ---
     const AVATARS = ['🐯','🐰','🦁','🦄','🦖','👽','🤖','🐼','🦊','🐨','🐮','🐷'];
     const AUDIO = new (window.AudioContext||window.webkitAudioContext)();
     
@@ -209,19 +202,16 @@
         q: null, input: '', lastBeep: -1
     };
 
-    // --- 3. VIEW CONTROLLER ---
     const views = ['view-menu','view-topic-select','view-host-lobby','view-host-game','view-join','view-avatar-select','view-student-wait','view-game','view-podium','view-rankings'];
     function show(id) { 
         views.forEach(v=>document.getElementById(v).classList.add('hidden')); 
         const el = document.getElementById(id);
         el.classList.remove('hidden'); 
         if(id.includes('host')||id.includes('flex')) el.classList.add('flex');
-        
         if(id==='view-game') { resize(); setTimeout(resize, 200); }
     }
     window.onload=()=>state.gid?show('view-join'):show('view-menu');
 
-    // --- 4. HOST LOGIC ---
     function setupHost() { if(!db)return; AUDIO.resume(); show('view-topic-select'); }
     function selectTopic(t) {
         state.settings.topic = t;
@@ -239,7 +229,7 @@
             }
             document.getElementById('join-count-display').innerText = `${c} PLAYERS`;
             const btn = document.getElementById('btn-host-start');
-            btn.disabled = c < 1; // Allow 1 player for testing
+            btn.disabled = c < 1;
             btn.className = c<1 ? "btn-primary mt-auto bg-slate-700 opacity-50" : "btn-primary mt-auto bg-green-600 hover:bg-green-500 py-6 text-3xl shadow-green-900/50";
             btn.innerText = c<1 ? `⏳ WAIT (${c}/2)` : "🚀 START GAME";
         });
@@ -261,7 +251,6 @@
             if(state.settings.mode==='time') {
                 const left = Math.ceil((end - Date.now())/1000);
                 document.getElementById('host-timer-display').innerText = left<=0 ? "00:00" : `${Math.floor(left/60)}:${(left%60).toString().padStart(2,'0')}`;
-                
                 if(left <= 5 && left > 0 && left !== state.lastBeep) {
                     state.lastBeep = left; playTone(600 + (5-left)*200, 'sawtooth', 0.1);
                 }
@@ -269,7 +258,6 @@
             } else { document.getElementById('host-timer-display').innerText = "RACE"; }
         }, 500);
 
-        // HOST LIVE LISTENER
         db.ref(`games/${state.gid}/players`).on('value', snap => {
             const arr = []; 
             if(snap.exists()) snap.forEach(c => arr.push(c.val()));
@@ -278,7 +266,6 @@
             const max = state.settings.mode==='score' ? state.settings.target : Math.max(state.settings.target*10, (arr[0]?.score||0)*1.2);
             if(state.settings.mode==='score' && arr[0]?.score >= state.settings.target) { clearInterval(timerLoop); finishGame(); }
 
-            // DOM Construction for stability
             const con = document.getElementById('lanes-container');
             con.innerHTML = ''; 
             arr.forEach((p, i) => {
@@ -307,13 +294,11 @@
                 const arr=[]; s.forEach(c=>arr.push(c.val()));
                 arr.sort((a,b)=>b.score-a.score);
                 db.ref(`games/${state.gid}`).update({ status: 'results', finalStandings: arr });
-                // Force Host to show results too
                 showResults(arr);
             });
         }, 2000);
     }
 
-    // --- 5. CLIENT LOGIC ---
     function goToAvatarSelect() {
         if(!document.getElementById('player-name').value) return;
         state.name = document.getElementById('player-name').value;
@@ -369,7 +354,6 @@
         }, 500);
     }
 
-    // --- 6. MATH ENGINE ---
     const cvs = document.getElementById('gameCanvas'), ctx = cvs.getContext('2d');
     function resize() { 
         const p=document.getElementById('canvas-container'); 
@@ -430,7 +414,11 @@
     }
 
     function draw() {
-        const w=cvs.width, h=cvs.height, cx=w/2, cy=h/2; 
+        const w=cvs.width, h=cvs.height;
+        const cx=w/2; 
+        // FIX: Moved question position UP (35% from top instead of 50%)
+        const cy=h*0.35; 
+
         if(w===0 || h===0) return;
         
         ctx.clearRect(0,0,w,h); ctx.strokeStyle='#22d3ee'; ctx.fillStyle='#fff'; ctx.lineWidth=4;
@@ -451,20 +439,15 @@
         } else if(state.q.type==='angles') {
             const l=120; ctx.lineWidth=5; ctx.beginPath();
             if(state.q.subType==='supp'){
-                // Straight Line
                 ctx.moveTo(cx-l,cy); ctx.lineTo(cx+l,cy); ctx.stroke();
                 ctx.moveTo(cx,cy); ctx.lineTo(cx-40,cy-l); ctx.stroke();
-                // Arc
                 ctx.beginPath(); ctx.strokeStyle='#ef4444'; ctx.arc(cx,cy,40,Math.PI,Math.PI+Math.acos(40/Math.sqrt(40*40+l*l))); ctx.stroke();
                 ctx.fillStyle='#fbbf24'; ctx.fillText('?',cx-30,cy-20);
                 ctx.fillStyle='#fff'; ctx.fillText(state.q.angleKnown+'°',cx+20,cy-20);
             } else {
-                // Right Angle
                 ctx.moveTo(cx-l,cy); ctx.lineTo(cx,cy); ctx.lineTo(cx,cy-l); ctx.stroke();
                 ctx.moveTo(cx,cy); ctx.lineTo(cx-Math.cos(state.q.angleKnown*Math.PI/180)*l,cy-Math.sin(state.q.angleKnown*Math.PI/180)*l); ctx.stroke();
-                // Box
                 ctx.strokeStyle='#fff'; ctx.strokeRect(cx-20,cy-20,20,20);
-                // Arc
                 ctx.beginPath(); ctx.strokeStyle='#ef4444'; ctx.arc(cx,cy,50,Math.PI, Math.PI+(state.q.angleKnown*Math.PI/180)); ctx.stroke();
                 ctx.fillStyle='#fbbf24'; ctx.fillText('?',cx-40,cy-10);
             }
@@ -488,7 +471,6 @@
     function showResults(list) {
         if(!list) return;
         show('view-podium');
-        
         const setPod = (id, p, d) => {
             if(!p) return;
             setTimeout(() => {
