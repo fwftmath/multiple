@@ -654,11 +654,10 @@
     
     function createMathProblem(topic, currentScore = 0) {
         let t = topic;
-        if (topic === 'mixed') {
-            // Mixed now includes Angles and Factors
-            const types = ['integers', 'algebra', 'percent', 'area', 'volume', 'angles', 'factors'];
-            t = types[Math.floor(Math.random() * types.length)];
-        }
+if (topic === 'mixed') {
+    const types = ['integers', 'algebra', 'percent', 'area', 'volume', 'angles', 'factors'];
+    t = types[Math.floor(Math.random() * types.length)];
+}
 
         // INTEGERS
         if (t === 'integers') {
@@ -700,22 +699,23 @@
             }
         }
 
-        // ANGLES - NEW
-        if (t === 'angles') {
-            const type = Math.random();
-            if (type < 0.4) { // Straight Line
-                const ang1 = rInt(30, 150);
-                return { type: 'geo', shape: 'line_angle', v1: ang1, qText: 'Find x', a: 180 - ang1 };
-            } else if (type < 0.7) { // Point
-                const ang1 = rInt(90, 140);
-                const ang2 = rInt(50, 100);
-                return { type: 'geo', shape: 'point_angle', v1: ang1, v2: ang2, qText: 'Find x', a: 360 - ang1 - ang2 };
-            } else { // Triangle
-                const ang1 = rInt(30, 90);
-                const ang2 = rInt(30, 170 - ang1);
-                return { type: 'geo', shape: 'tri_angle', v1: ang1, v2: ang2, qText: 'Find x', a: 180 - ang1 - ang2 };
-            }
-        }
+// ANGLES
+if (t === 'angles') {
+    const type = Math.random();
+    if (type < 0.3) { // 直線上的鄰角 (180度)
+        const ang1 = rInt(30, 150);
+        return { type: 'geo', shape: 'line_angle', v1: ang1, qText: 'Find x', a: 180 - ang1 };
+    } else if (type < 0.5) { // 同一點的周角 (360度)
+        const ang1 = rInt(90, 140);
+        const ang2 = rInt(50, 100);
+        return { type: 'geo', shape: 'point_angle', v1: ang1, v2: ang2, qText: 'Find x', a: 360 - ang1 - ang2 };
+    } else { // 三角形內角和 (180度)
+        // 確保兩個角相加小於 170，預留空間給第三個角 x
+        const ang1 = rInt(35, 80);
+        const ang2 = rInt(35, 80);
+        return { type: 'geo', shape: 'tri_angle', v1: ang1, v2: ang2, qText: 'Find x', a: 180 - ang1 - ang2 };
+    }
+}
 
         // AREA 
         if (t === 'area') {
@@ -922,14 +922,29 @@
             ctx.fillText(`${q.v2}°`, cx - 40, cy);
             ctx.fillStyle = '#22d3ee'; ctx.fillText(`x`, cx + 20, cy + 40);
         }
-        else if (q.shape === 'tri_angle') {
-            const base = 140, height = 110;
-            const left = cx - base/2, right = cx + base/2, topY = cy - height/2, botY = cy + height/2;
-            ctx.beginPath(); ctx.moveTo(left, botY); ctx.lineTo(right, botY); ctx.lineTo(cx, topY); ctx.closePath(); ctx.stroke();
-            ctx.fillStyle = '#fff'; ctx.fillText(`${q.v1}°`, cx, topY + 30);
-            ctx.fillText(`${q.v2}°`, right - 20, botY - 10);
-            ctx.fillStyle = '#22d3ee'; ctx.fillText(`x`, left + 20, botY - 10);
-        }
+else if (q.shape === 'tri_angle') {
+    const base = 140, height = 110;
+    const left = cx - base/2, right = cx + base/2, topY = cy - height/2, botY = cy + height/2;
+    
+    // 畫三角形
+    ctx.beginPath(); 
+    ctx.moveTo(left, botY); 
+    ctx.lineTo(right, botY); 
+    ctx.lineTo(cx, topY); 
+    ctx.closePath(); 
+    ctx.stroke();
+
+    // 標註已知角度和 x
+    ctx.fillStyle = '#fff'; // 已知角1 (頂角)
+    ctx.fillText(`${q.v1}°`, cx, topY + 35);
+    
+    ctx.fillStyle = '#fff'; // 已知角2 (右底角)
+    ctx.fillText(`${q.v2}°`, right - 25, botY - 15);
+    
+    ctx.fillStyle = '#22d3ee'; // 未知角 x (左底角)
+    ctx.font = "bold 24px 'Roboto Mono'";
+    ctx.fillText(`x`, left + 25, botY - 15);
+}
         else if (q.shape === 'square') {
             const size = 100;
             ctx.strokeRect(cx - size/2, cy - size/2, size, size);
